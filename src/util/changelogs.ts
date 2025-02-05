@@ -1,105 +1,152 @@
-import { z } from "astro:schema";
-import { getCollection } from "astro:content";
-import { type CollectionEntry } from "astro:content";
+import type { RSSFeedItem } from "@astrojs/rss";
+import { getCollection, getEntries, type CollectionEntry } from "astro:content";
+import { rehype } from "rehype";
+import { entryToString } from "~/util/container";
+import rehypeFilterElements from "~/plugins/rehype/filter-elements";
 
-export async function getChangelogs(opts?: {
-	filter?: Parameters<typeof getCollection<"changelogs">>[1];
-	wranglerOnly?: boolean;
-	deprecationsOnly?: boolean;
-}) {
-	let changelogs;
+type DocsToChangelogOptions = {
+	name: string;
+	product: string;
+	entry: CollectionEntry<"docs">;
+};
 
-	if (opts?.wranglerOnly) {
-		changelogs = [await getWranglerChangelog()];
-	} else if (opts?.filter) {
-		changelogs = await getCollection("changelogs", opts.filter);
+function docsToChangelog({
+	name,
+	product,
+	entry,
+}: DocsToChangelogOptions): CollectionEntry<"changelogs-next"> {
+	const { data } = entry;
+	const { title, changelog } = data;
+
+	let date;
+	if (changelog?.date) {
+		date = changelog.date;
 	} else {
-		changelogs = await getCollection("changelogs");
+		date = new Date(data.title.split(" ")[0]);
 	}
 
-	if (!changelogs) {
-		throw new Error(
-			`[getChangelogs] Unable to find any changelogs with ${JSON.stringify(opts)}`,
-		);
-	}
-
-	if (opts?.deprecationsOnly) {
-		changelogs = changelogs.filter((x) => x.id === "api-deprecations");
-	} else {
-		changelogs = changelogs.filter((x) => x.id !== "api-deprecations");
-	}
-
-	const products = [...new Set(changelogs.flatMap((x) => x.data.productName))];
-	const productAreas = [
-		...new Set(changelogs.flatMap((x) => x.data.productArea)),
-	];
-
-	const mapped = changelogs.flatMap((product) => {
-		return product.data.entries.map((entry) => {
-			return {
-				product: product.data.productName,
-				link: product.data.link,
-				date: entry.publish_date,
-				description: entry.description,
-				title: entry.title,
-				scheduled: entry.scheduled,
-				productLink: product.data.productLink,
-				productAreaName: product.data.productArea,
-				productAreaLink: product.data.productAreaLink,
-				individual_page: entry.individual_page && entry.link,
-			};
-		});
-	});
-
-	const grouped = Object.entries(Object.groupBy(mapped, (entry) => entry.date));
-	const entries = grouped.sort().reverse();
-
-	return { products, productAreas, changelogs: entries };
-}
-
-export async function getWranglerChangelog(): Promise<
-	CollectionEntry<"changelogs">
-> {
-	const response = await fetch(
-		"https://api.github.com/repos/cloudflare/workers-sdk/releases?per_page=100",
-	);
-
-	if (!response.ok) {
-		throw new Error(
-			`[GetWranglerChangelog] Received ${response.status} response from GitHub API.`,
-		);
-	}
-
-	const json = await response.json();
-
-	let releases = z
-		.object({
-			published_at: z.coerce.date(),
-			name: z.string(),
-			body: z.string(),
-		})
-		.array()
-		.parse(json);
-
-	releases = releases.filter((x) => x.name.startsWith("wrangler@"));
+	const iso8601 = date.toISOString().slice(0, 10);
 
 	return {
-		id: "wrangler",
-		collection: "changelogs",
+		...entry,
+		collection: "changelogs-next",
 		data: {
-			link: "/workers/platform/changelog/wrangler/",
-			productName: "wrangler",
-			productLink: "/workers/wrangler/",
-			productArea: "Developer platform",
-			productAreaLink: "/workers/platform/changelog/platform/",
-			entries: releases.map((release) => {
-				return {
-					publish_date: release.published_at.toISOString().substring(0, 10),
-					title: release.name.split("@")[1],
-					link: `https://github.com/cloudflare/workers-sdk/releases/tag/wrangler%40${release.name.split("@")[1]}`,
-					description: release.body,
-				};
-			}),
+			title,
+			description: `${name} - ${iso8601}`,
+			date,
+			products: [{ collection: "products", id: product }],
+			link: `/${entry.id}/`,
 		},
 	};
+}
+
+type GetChangelogsOptions = {
+	filter?: (entry: CollectionEntry<"changelogs-next">) => boolean;
+};
+
+export async function getChangelogs({
+	filter,
+}: GetChangelogsOptions): Promise<Array<CollectionEntry<"changelogs-next">>> {
+	let entries = await getCollection("changelogs-next");
+
+	entries = entries.map((e) => {
+		e.data.link = `/changelog-next/${e.id}/`;
+
+		return e;
+	});
+
+	const ddosHttp = await getCollection("docs", (e) => {
+		return (
+			e.id.startsWith("ddos-protection/change-log/http/") &&
+			e.data.pcx_content_type === "changelog"
+		);
+	});
+
+	ddosHttp
+		.map((e) =>
+			docsToChangelog({
+				name: "HTTP DDoS managed ruleset",
+				product: "ddos-protection",
+				entry: e,
+			}),
+		)
+		.forEach((e) => entries.push(e));
+
+	const ddosNetwork = await getCollection("docs", (e) => {
+		return (
+			e.id.startsWith("ddos-protection/change-log/network/") &&
+			e.data.pcx_content_type === "changelog"
+		);
+	});
+
+	ddosNetwork
+		.map((e) =>
+			docsToChangelog({
+				name: "Network-layer DDoS managed ruleset",
+				product: "ddos-protection",
+				entry: e,
+			}),
+		)
+		.forEach((e) => entries.push(e));
+
+	const waf = await getCollection("docs", (e) => {
+		return (
+			e.id.startsWith("waf/change-log/") &&
+			e.data.pcx_content_type === "changelog"
+		);
+	});
+
+	waf
+		.map((e) =>
+			docsToChangelog({
+				name: "WAF",
+				product: "waf",
+				entry: e,
+			}),
+		)
+		.forEach((e) => entries.push(e));
+
+	if (filter) {
+		entries = entries.filter((e) => filter(e));
+	}
+
+	return entries.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+}
+
+type GetRSSItemsOptions = {
+	notes: Array<CollectionEntry<"changelogs-next">>;
+	locals: App.Locals;
+};
+
+export async function getRSSItems({
+	notes,
+	locals,
+}: GetRSSItemsOptions): Promise<Array<RSSFeedItem>> {
+	return await Promise.all(
+		notes.map(async (note) => {
+			const { title, description, date, products, link } = note.data;
+
+			const productEntries = await getEntries(products);
+			const productTitles = productEntries.map((p) => p.data.name);
+
+			const html = await entryToString(note, locals);
+			const file = await rehype()
+				.data("settings", {
+					fragment: true,
+				})
+				.use(rehypeFilterElements)
+				.process(html);
+
+			const content = String(file);
+
+			return {
+				title: `${productTitles.join(", ")} - ${title}`,
+				description,
+				content,
+				pubDate: date,
+				categories: productTitles,
+				link,
+			};
+		}),
+	);
 }

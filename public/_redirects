@@ -5,6 +5,18 @@
 /tutorials/ /search/?content_type%5B0%5D=Tutorial 301
 /sitemap.xml /sitemap-index.xml
 
+# changelogs
+
+## areas
+/cloudflare-one/changelog/index.xml /changelog-next/rss/index.xml 301
+/fundamentals/reference/changelog/performance/index.xml changelog-next/rss/index.xml 301
+/fundamentals/reference/changelog/platform/index.xml changelog-next/rss/index.xml 301
+/fundamentals/reference/changelog/security/index.xml changelog-next/rss/index.xml 301
+/workers/platform/changelog/platform/index.xml /changelog-next/rss/index.xml 301
+
+## products
+/cloudflare-one/changelog/access/index.xml /changelog-next/rss/access.xml 301
+
 # 1dot1_redirect
 /1.1.1.1/1.1.1.1-for-families/ /1.1.1.1/setup/ 301
 /1.1.1.1/1.1.1.1-for-families/android/ /1.1.1.1/setup/android/ 301

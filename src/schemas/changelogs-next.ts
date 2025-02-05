@@ -6,4 +6,5 @@ export const changelogsNextSchema = z.object({
 	description: z.string(),
 	date: z.coerce.date(),
 	products: z.array(reference("products")),
+	link: z.string().optional(),
 });

@@ -1,5 +1,6 @@
 import { z } from "astro:schema";
 import { BadgeConfigSchema } from "./types/badge";
+import { reference } from "astro:content";
 
 const spotlightAuthorDetails = z
 	.object({
@@ -66,8 +67,6 @@ export const baseSchema = z.object({
 			"This is used to automatically add the LastReviewed component to a page. Refer to https://developers.cloudflare.com/style-guide/components/last-reviewed/.",
 		),
 	spotlight: spotlightAuthorDetails,
-	changelog_file_name: z.string().array().optional(),
-	changelog_product_area_name: z.string().optional(),
 	products: z.string().array().optional(),
 	languages: z.string().array().optional(),
 	summary: z.string().optional(),
@@ -102,4 +101,11 @@ export const baseSchema = z.object({
 		.describe(
 			"Renders this group as a single link on the sidebar, to the index page. Refer to https://developers.cloudflare.com/style-guide/frontmatter/sidebar/.",
 		),
+	changelog: z
+		.object({
+			products: z.array(reference("products")).optional(),
+			date: z.coerce.date().optional(),
+		})
+		.strict()
+		.optional(),
 });

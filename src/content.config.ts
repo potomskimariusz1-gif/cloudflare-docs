@@ -31,7 +31,7 @@ function contentLoader(name: string) {
 
 function dataLoader(name: string) {
 	return glob({
-		pattern: "**/*.(json|yml|yaml)",
+		pattern: "**/*.(json|yaml)",
 		base: "./src/content/" + name,
 	});
 }

@@ -4,7 +4,7 @@ import { loadRenderers } from "astro:container";
 import { render, type CollectionEntry } from "astro:content";
 
 export async function entryToString(
-	entry: CollectionEntry<"docs">,
+	entry: CollectionEntry<"docs" | "changelogs-next">,
 	locals: any,
 ) {
 	if (entry.rendered?.html) {
