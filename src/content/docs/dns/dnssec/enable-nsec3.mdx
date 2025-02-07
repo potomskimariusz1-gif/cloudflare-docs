@@ -1,0 +1,13 @@
+---
+pcx_content_type: how-to
+title: Enable NSEC3
+description: Learn how to enable NSEC3 support with Cloudflare to meet compliance requirements.
+sidebar:
+  order: 6
+---
+
+As explained in [our blog](https://blog.cloudflare.com/black-lies/), Cloudflare's implementation of negative answers with NSEC is protected against zone walking[^1]. This removes the need for NSEC3.
+
+However, if you must use NSEC3 for compliance reasons, you can enable it as explained below.
+
+[^1]: A method where an attacker exploits NSEC negative answers to obtain all names in a given zone. This is possible when such negative answers provide information on the last and next names in a chain.
