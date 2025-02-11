@@ -87,7 +87,7 @@ When starting a Session with `withSession` in your Worker code, you can specify 
 When continuing an existing Session started with `withSession`, you can provide a `bookmark` parameter from an existing Session.
 
 - `bookmark`:
-  - Continues an existing Session using the provided `bookmark` as the reference point. If you already have a `bookmark` from a different part of the application, you can extend that Session using the same `bookmark`, which ensures you read from a version of the database which is at least as up-to-date as the `bookmark`.
+  - Continues an existing Session using the provided `bookmark` as the reference point. If you already have a `bookmark` from a different part of the application, you can continue that Session using the same `bookmark`, which ensures you read from a version of the database which is at least as up-to-date as the `bookmark`.
   - Subsequent queries in the Session have sequential consistency.
   - You can return the last encountered `bookmark` for a given Session using `sess.getBookmark()`.
   - Example use-case: (Continuation of the previous example used in `first-primary`) Reading the score-table of an ongoing sports tournament. A user may have started a web browser session and already has a `bookmark`. D1 can serve subsequent read queries within the same Session which is logically consistent by using the `bookmark`.
