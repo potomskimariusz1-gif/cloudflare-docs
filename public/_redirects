@@ -4,8 +4,185 @@
 /dashboard-landing/ / 301
 /tutorials/ /search/?content_type%5B0%5D=Tutorial 301
 /sitemap.xml /sitemap-index.xml
-/changelog/index.xml /release-notes/index.xml 301
 /deprecations/ /fundamentals/api/reference/deprecations/ 301
+
+# changelogs
+
+## legacy
+/release-notes/ /changelog/ 301
+/release-notes/index.xml /changelog/rss/index.xml 301
+
+## rss
+/changelog/index.xml /changelog/rss/index.xml 301
+/changelog/rss.xml /changelog/rss/index.xml 301
+
+### areas
+/cloudflare-one/changelog/index.xml /changelog/rss/cloudflare-one.xml 301
+/fundamentals/reference/changelog/performance/index.xml /changelog/rss/application-performance.xml 301
+/fundamentals/reference/changelog/platform/index.xml /changelog/rss/core-platform.xml 301
+/fundamentals/reference/changelog/security/index.xml /changelog/rss/application-security.xml 301
+/workers/platform/changelog/platform/index.xml /changelog/rss/developer-platform.xml 301
+
+### products
+/cloudflare-one/changelog/access/index.xml /changelog/rss/access.xml 301
+/ai-gateway/changelog/index.xml /changelog/rss/ai-gateway.xml 301
+/fundamentals/api/reference/deprecations/index.xml /changelog/rss/api-deprecations.xml 301
+/api-shield/changelog/index.xml /changelog/rss/api-shield.xml 301
+/web-analytics/changelog/index.xml /changelog/rss/beacon-min-js.xml 301
+/bots/changelog/index.xml /changelog/rss/bots.xml 301
+/cloudflare-one/changelog/browser-isolation/index.xml /changelog/rss/browser-isolation.xml 301
+/browser-rendering/changelog/index.xml /changelog/rss/browser-rendering.xml 301
+/byoip/changelog/index.xml /changelog/rss/byoip.xml 301
+/cache/changelog/index.xml /changelog/rss/cache.xml 301
+/calls/changelog/index.xml /changelog/rss/calls.xml 301
+/cloudflare-one/changelog/casb/index.xml /changelog/rss/casb.xml 301
+/d1/platform/changelog/index.xml /changelog/rss/d1.xml 301
+
+/workers/platform/changelog/wrangler/ https://github.com/cloudflare/workers-sdk/releases 301
+/workers/platform/changelog/wrangler/index.xml https://github.com/cloudflare/workers-sdk/releases.atom 301
+
+# todo
+
+# ddos-http.yaml
+# "/ddos-protection/change-log/http/"
+
+# ddos-network.yaml
+# "/ddos-protection/change-log/network/"
+
+# ddos.yaml
+# "/ddos-protection/change-log/general-updates/"
+
+# dex.yaml
+# "/cloudflare-one/changelog/dex/"
+
+# dlp.yaml
+# "/cloudflare-one/changelog/dlp/"
+
+# dns.yaml
+# "/dns/changelog/"
+
+# durable-objects.yaml
+# "/durable-objects/changelog/"
+
+# email-security.yaml
+# "/cloudflare-one/changelog/email-security/"
+
+# fundamentals.yaml
+# "/fundamentals/changelog/"
+
+# gateway.yaml
+# "/cloudflare-one/changelog/gateway/"
+
+# hyperdrive.yaml
+# "/hyperdrive/platform/changelog/"
+
+# images.yaml
+# "/images/platform/changelog/"
+
+# kv.yaml
+# "/kv/platform/changelog/"
+
+# load-balancing.yaml
+# "/load-balancing/changelog/"
+
+# logs.yaml
+# "/logs/changelog/"
+
+# magic-cloud-networking.yaml
+# "/magic-cloud-networking/changelog/"
+
+# magic-firewall.yaml
+# "/magic-firewall/changelog/"
+
+# magic-network-monitoring.yaml
+# "/magic-network-monitoring/changelog/"
+
+# magic-transit.yaml
+# "/magic-transit/changelog/"
+
+# magic-wan.yaml
+# "/magic-wan/changelog/"
+
+# network-interconnect.yaml
+# "/network-interconnect/changelog/"
+
+# notifications.yaml
+# "/notifications/changelog/"
+
+# pages.yaml
+# "/pages/platform/changelog/"
+
+# queues.yaml
+# "/queues/platform/changelog/"
+
+# r2.yaml
+# "/r2/platform/changelog/"
+
+# radar.yaml
+# "/radar/changelog/"
+
+# risk-score.yaml
+# "/cloudflare-one/changelog/risk-score/"
+
+# rules.yaml
+# "/rules/changelog/"
+
+# security-center.yaml
+# "/security-center/changelog/"
+
+# spectrum.yaml
+# "/spectrum/changelog/"
+
+# ssl.yaml
+# "/ssl/changelog/"
+
+# stream.yaml
+# "/stream/changelog/"
+
+# tenant.yaml
+# "/tenant/changelog/"
+
+# trace.yaml
+# "/fundamentals/security/trace-request/changelog/"
+
+# tunnel.yaml
+# "/cloudflare-one/changelog/tunnel/"
+
+# turnstile.yaml
+# "/turnstile/changelog/"
+
+# vectorize.yaml
+# "/vectorize/platform/changelog/"
+
+# version-management.yaml
+# "/version-management/changelog/"
+
+# waf-general.yaml
+# "/waf/change-log/general-updates/"
+
+# waf.yaml
+# "/waf/change-log/"
+
+# waiting-room.yaml
+# "/waiting-room/changelog/"
+
+# warp.yaml
+# "/cloudflare-one/changelog/warp/"
+
+# workers-ai.yaml
+# "/workers-ai/changelog/"
+
+# workers-for-platforms.yaml
+# "/cloudflare-for-platforms/workers-for-platforms/platform/changelog/"
+
+# workers.yaml
+# "/workers/platform/changelog/"
+
+# workflows.yaml
+# "/workflows/reference/changelog/"
+
+# zaraz.yaml
+# "/zaraz/changelog/"
 
 # 1dot1_redirect
 /1.1.1.1/1.1.1.1-for-families/ /1.1.1.1/setup/ 301

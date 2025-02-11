@@ -1,8 +1,6 @@
 ---
 pcx_content_type: changelog
 title: Cloudflare Tunnel
-changelog_file_name:
-  - tunnel
 head:
   - tag: title
     content: Cloudflare Tunnel Changelog
@@ -12,6 +10,4 @@ description: Review recent changes to Cloudflare Tunnel.
 
 import { ProductChangelog } from "~/components"
 
-{/* <!-- All changelog entries live in src/content/changelogs/tunnel.yaml. For more details, refer to https://developers.cloudflare.com/style-guide/documentation-content-strategy/content-types/changelog/#yaml-file --> */}
-
-<ProductChangelog />
+<ProductChangelog products={["tunnel"]} />

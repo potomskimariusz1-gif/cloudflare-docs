@@ -7,7 +7,7 @@ import { glob } from "astro/loaders";
 
 import {
 	appsSchema,
-	changelogsSchema,
+	changelogSchema,
 	baseSchema,
 	notificationsSchema,
 	pagesBuildEnvironmentSchema,
@@ -18,7 +18,6 @@ import {
 	videosSchema,
 	workersAiModelsSchema,
 	warpReleasesSchema,
-	changelogsNextSchema,
 	fieldsSchema,
 } from "~/schemas";
 
@@ -51,9 +50,9 @@ export const collections = {
 		loader: i18nLoader(),
 		schema: i18nSchema(),
 	}),
-	changelogs: defineCollection({
-		loader: dataLoader("changelogs"),
-		schema: changelogsSchema,
+	changelog: defineCollection({
+		loader: contentLoader("changelog"),
+		schema: changelogSchema,
 	}),
 	"compatibility-flags": defineCollection({
 		loader: contentLoader("compatibility-flags"),
@@ -105,10 +104,6 @@ export const collections = {
 	"warp-releases": defineCollection({
 		loader: dataLoader("warp-releases"),
 		schema: warpReleasesSchema,
-	}),
-	"changelogs-next": defineCollection({
-		loader: contentLoader("changelogs-next"),
-		schema: changelogsNextSchema,
 	}),
 	fields: defineCollection({
 		loader: dataLoader("fields"),

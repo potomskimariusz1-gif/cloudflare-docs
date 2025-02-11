@@ -4,7 +4,7 @@ import { z } from "astro:schema";
 import { getEntry, type CollectionEntry } from "astro:content";
 
 import { StarlightIcon } from "..";
-import HeroImage from "~/assets/images/changelog-next/hero.svg";
+import HeroImage from "~/assets/images/changelog/hero.svg";
 
 type Props = z.input<typeof props>;
 
@@ -14,9 +14,7 @@ const props = z.object({
 
 const { notes } = props.parse(Astro.props);
 
-async function uniqueProducts(
-	notes: Array<CollectionEntry<"changelogs-next">>,
-) {
+async function uniqueProducts(notes: Array<CollectionEntry<"changelog">>) {
 	const unique = [
 		...new Set(notes.flatMap((e) => e.data.products.map((p) => p.id))),
 	];
@@ -49,7 +47,7 @@ const products = await uniqueProducts(notes);
 		{
 			products.length > 0 && (
 				<div>
-					<select id="changelogs-next-filter" class="mt-2 h-8 w-52">
+					<select id="changelog-filter" class="mt-2 h-8 w-52">
 						<option value="all">All products</option>
 						{products
 							.sort((a, b) => a.id.localeCompare(b.id))

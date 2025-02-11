@@ -1,8 +1,6 @@
 ---
 pcx_content_type: changelog
 title: Gateway
-changelog_file_name:
-  - gateway
 head:
   - tag: title
     content: Gateway Changelog
@@ -12,6 +10,4 @@ description: Review recent changes to Cloudflare Gateway.
 
 import { ProductChangelog } from "~/components"
 
-{/* <!-- All changelog entries live in src/content/changelogs/gateway.yaml. For more details, refer to https://developers.cloudflare.com/style-guide/documentation-content-strategy/content-types/changelog/#yaml-file --> */}
-
-<ProductChangelog />
+<ProductChangelog products={["gateway"]} />

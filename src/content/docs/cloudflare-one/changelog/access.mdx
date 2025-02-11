@@ -1,8 +1,6 @@
 ---
 pcx_content_type: changelog
 title: Access
-changelog_file_name:
-  - access
 head:
   - tag: title
     content: Access Changelog
@@ -12,6 +10,4 @@ description: Review recent changes to Cloudflare Access.
 
 import { ProductChangelog } from "~/components"
 
-{/* <!-- All changelog entries live in src/content/changelogs/access.yaml. For more details, refer to https://developers.cloudflare.com/style-guide/documentation-content-strategy/content-types/changelog/#yaml-file --> */}
-
-<ProductChangelog />
+<ProductChangelog products={["access"]} />
