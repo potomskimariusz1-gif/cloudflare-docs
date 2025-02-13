@@ -10,6 +10,36 @@ You can now automatically create Cloudflare resources as part of your deployment
 
 For more details, check out our [documentation](/workers/wrangler/automatic-resource-creation) on how to get started with automatic resource creation. 
 
-![automatic resource creation](~/assets/images/workers/platform/automatic-resource-creation.png)
+```bash
+$ wrangler deploy --x-provision
+ ⛅️ wrangler 3.109.0
+--------------------
+
+Total Upload: 0.29 KiB / gzip: 0.22 KiB
+
+The following bindings need to be provisioned:
+- KV Namespaces:
+  - MY_KV 
+- D1 Databases:
+  - MY_D1 
+- R2 Buckets:
+  - MY_R2 
+
+...
+
+🎉 All resources provisioned, continuing with deployment...
+
+Your worker has access to the following bindings:
+- KV Namespaces:
+  - MY_KV: ...
+- D1 Databases:
+  - MY_D1: ...
+- R2 Buckets:
+  - MY_R2: ...
+Uploaded my-worker
+Deployed my-worker triggers
+  https://my-worker.workers.dev
+Current Version ID: ...
+```
 
 Resource provisiong is currently a beta feature. If you run into issues or would like to leave feedback for the team to help us improve, please send us a message in our [Cloudflare Developers Discord](https://discord.cloudflare.com/) in the [Wrangler channel](https://discord.com/channels/595317990191398933/799437470004412476).
