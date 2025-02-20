@@ -23,23 +23,22 @@ const FieldCatalog = ({ fields }: { fields: Fields }) => {
 	});
 
 	const categories = [
-		...new Set(
-			fields
-				.flatMap((field) => field.categories ?? [])
-				.sort(),
-		),
+		...new Set(fields.flatMap((field) => field.categories ?? []).sort()),
 	];
 
 	// apply filters to the fields list
 	const fieldList = mapped.filter((field) => {
-		if (filters.categories.length > 0 && !field.categories?.some((c) => filters.categories.includes(c))) {
-				return false;
-			}
+		if (
+			filters.categories.length > 0 &&
+			!field.categories?.some((c) => filters.categories.includes(c))
+		) {
+			return false;
+		}
 
 		if (filters.search) {
 			// search keywords
-			const keywordFound = field.keywords?.some(
-				(kw) => kw.includes(filters.search),
+			const keywordFound = field.keywords?.some((kw) =>
+				kw.includes(filters.search),
 			);
 
 			if (

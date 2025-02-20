@@ -27,9 +27,9 @@ async function autogenSections() {
 		.filter((x) => x.isDirectory())
 		.map((x) => {
 			return {
-				label: x,
+				label: x.name,
 				autogenerate: {
-					directory: x,
+					directory: x.name,
 					collapsed: true,
 				},
 			};

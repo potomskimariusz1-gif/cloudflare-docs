@@ -6,9 +6,7 @@ let init = false;
 
 async function render() {
 	const theme =
-		document.documentElement.dataset.theme === "light"
-			? "neutral"
-			: "dark";
+		document.documentElement.dataset.theme === "light" ? "neutral" : "dark";
 
 	for (const diagram of diagrams) {
 		if (!init) {

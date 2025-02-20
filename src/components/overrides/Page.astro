@@ -48,9 +48,11 @@ if (props.hasSidebar) {
 	}
 }
 
-data.description = await (data.description ? generateDescription({
-		markdown: data.description,
-	}) : generateDescription({ html }));
+data.description = await (data.description
+	? generateDescription({
+			markdown: data.description,
+		})
+	: generateDescription({ html }));
 
 if (data.updated) {
 	data.lastUpdated = undefined;

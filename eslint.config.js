@@ -53,6 +53,7 @@ export default [
 	{
 		rules: {
 			"no-var": "error",
+			"unicorn/better-regex": "error",
 			"unicorn/prevent-abbreviations": "off",
 			"unicorn/filename-case": "off",
 			"unicorn/text-encoding-identifier-case": "off",
@@ -66,6 +67,11 @@ export default [
 			"unicorn/prefer-dom-node-text-content": "off",
 			"unicorn/prefer-add-event-listener": "off",
 			"unicorn/template-indent": "off",
+			"unicorn/no-nested-ternary": "off",
+			"unicorn/numeric-separators-style": [
+				"error",
+				{ onlyIfContainsSeparator: true },
+			],
 			"unicorn/consistent-function-scoping": [
 				"error",
 				{ checkArrowFunctions: false },

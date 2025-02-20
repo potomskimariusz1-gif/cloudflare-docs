@@ -200,6 +200,8 @@ const metrics = Object.entries({
 		}
 	}
 
-	for (const input of document
-	.querySelectorAll("input[data-tunnel-calculator]")) input.addEventListener("change", calculate);
+	for (const input of document.querySelectorAll(
+		"input[data-tunnel-calculator]",
+	))
+		input.addEventListener("change", calculate);
 </script>

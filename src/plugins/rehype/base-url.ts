@@ -8,10 +8,10 @@ export default function () {
 				const href = element.properties.href as string | undefined;
 
 				if (href && href.startsWith("/")) {
-						const url = new URL(href, "https://developers.cloudflare.com/");
+					const url = new URL(href, "https://developers.cloudflare.com/");
 
-						element.properties.href = url.href;
-					}
+					element.properties.href = url.href;
+				}
 			}
 		});
 	};

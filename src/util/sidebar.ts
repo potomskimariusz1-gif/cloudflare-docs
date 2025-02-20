@@ -43,12 +43,14 @@ export async function getSidebar(context: AstroGlobal<Props>) {
 	let memoized = sidebars.get(key);
 
 	if (!memoized) {
-		let group = context.props.sidebar
-			.find((entry) => entry.type === "group" && entry.label === product) as Group;
+		let group = context.props.sidebar.find(
+			(entry) => entry.type === "group" && entry.label === product,
+		) as Group;
 
 		if (module) {
-			group = group.entries
-				.find((entry) => entry.type === "group" && entry.label === module) as Group;
+			group = group.entries.find(
+				(entry) => entry.type === "group" && entry.label === module,
+			) as Group;
 		}
 
 		if (!group) {
@@ -102,11 +104,10 @@ function setSidebarCurrentEntry(
 			return true;
 		}
 
-		const flattened = flattenSidebar(sidebar)
-			.find(
-				(link) =>
-					link.attrs["data-hide-children"] && pathname.startsWith(link.href),
-			);
+		const flattened = flattenSidebar(sidebar).find(
+			(link) =>
+				link.attrs["data-hide-children"] && pathname.startsWith(link.href),
+		);
 
 		if (
 			flattened &&
@@ -175,7 +176,9 @@ async function handleGroup(group: Group): Promise<SidebarEntry> {
 	}
 
 	for (const entry of group.entries.keys()) {
-		group.entries[entry] = await (group.entries[entry].type === "group" ? handleGroup(group.entries[entry] as Group) : handleLink(group.entries[entry] as Link));
+		group.entries[entry] = await (group.entries[entry].type === "group"
+			? handleGroup(group.entries[entry] as Group)
+			: handleLink(group.entries[entry] as Link));
 	}
 
 	const idx = group.entries.indexOf(index);

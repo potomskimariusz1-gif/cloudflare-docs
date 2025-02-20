@@ -13,5 +13,7 @@ export function formatBytes(bytes: number, decimals?: number) {
 		dm = decimals || 2,
 		sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"],
 		i = Math.floor(Math.log(bytes) / Math.log(k));
-	return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
+	return (
+		Number.parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i]
+	);
 }

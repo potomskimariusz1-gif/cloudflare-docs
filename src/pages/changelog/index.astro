@@ -83,7 +83,7 @@ const props = {
 		const value = filter.value;
 
 		if (value === "all") {
-			for (const entry of entries) (entry.style.display = "");
+			for (const entry of entries) entry.style.display = "";
 
 			return;
 		}

@@ -27,7 +27,7 @@ for (const track of tracks) {
 
 				let markdown = item.releaseNotes;
 
-				markdown.replaceAll('\r\n', "\n");
+				markdown.replaceAll("\r\n", "\n");
 
 				for (const line of linesToRemove) {
 					markdown = markdown.replace(line, "");

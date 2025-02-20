@@ -117,8 +117,8 @@ const props = {
 	const headers = document.querySelectorAll<HTMLElement>(
 		"[data-date] > div > h4",
 	);
-	for (const header of headers) new StickyHeader(header, { offset: 0 - navHeightPx })
-;
+	for (const header of headers)
+		new StickyHeader(header, { offset: 0 - navHeightPx });
 
 	const productFilter = document.querySelector<HTMLSelectElement>("#products");
 	productFilter?.addEventListener("change", filterEntries);
@@ -138,11 +138,11 @@ const props = {
 				productFilter?.value === "all"
 			) {
 				for (const x of dates) {
-				x.style.display = "";
-			}
+					x.style.display = "";
+				}
 				for (const x of entries) {
-				x.style.display = "";
-			}
+					x.style.display = "";
+				}
 				continue;
 			}
 

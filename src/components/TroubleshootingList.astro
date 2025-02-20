@@ -31,7 +31,10 @@ const resources = await getCollection("docs", (entry) => {
 				for (let i = 0; i < segments.length; i++) {
 					let path;
 
-					path = i === 0 ? `${currentSection}/${segments[i]}` : currentSection + "/" + segments.slice(0, i).join("/");
+					path =
+						i === 0
+							? `${currentSection}/${segments[i]}`
+							: currentSection + "/" + segments.slice(0, i).join("/");
 
 					const entry = await getEntry("docs", path);
 

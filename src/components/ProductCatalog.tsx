@@ -21,18 +21,19 @@ const ProductCatalog = ({ products }: { products: ProductData[] }) => {
 	const groups = [...new Set(products.flatMap((product) => product.groups))];
 
 	const productList = products.filter((product) => {
-		if (filters.groups.length > 0 && 
-				filters.groups.filter((val) => product.groups.includes(val)).length ===
-				0
-			) {
-				return false;
-			}
+		if (
+			filters.groups.length > 0 &&
+			filters.groups.filter((val) => product.groups.includes(val)).length === 0
+		) {
+			return false;
+		}
 
-		if (filters.search && 
-				!product.data.name.toLowerCase().includes(filters.search.toLowerCase())
-			) {
-				return false;
-			}
+		if (
+			filters.search &&
+			!product.data.name.toLowerCase().includes(filters.search.toLowerCase())
+		) {
+			return false;
+		}
 
 		return true;
 	});

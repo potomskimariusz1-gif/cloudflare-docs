@@ -43,39 +43,47 @@ const ModelCatalog = ({ models }: { models: WorkersAIModelsSchema[] }) => {
 	const authors = [...new Set(models.map((model) => model.name.split("/")[1]))];
 	const capabilities = [
 		...new Set(
-			models
-				.flatMap((model) =>
-					model.properties
-						.flatMap(({ property_id, value }) => {
-							if (property_id === "lora" && value === "true") {
-								return "LoRA";
-							}
+			models.flatMap((model) =>
+				model.properties
+					.flatMap(({ property_id, value }) => {
+						if (property_id === "lora" && value === "true") {
+							return "LoRA";
+						}
 
-							if (property_id === "function_calling" && value === "true") {
-								return "Function calling";
-							}
-						})
-						.filter(Boolean),
-				),
+						if (property_id === "function_calling" && value === "true") {
+							return "Function calling";
+						}
+					})
+					.filter(Boolean),
+			),
 		),
 	];
 
 	const modelList = mapped.filter(({ model }) => {
-		if (filters.authors.length > 0 && !filters.authors.includes(model.name.split("/")[1])) {
-				return false;
-			}
+		if (
+			filters.authors.length > 0 &&
+			!filters.authors.includes(model.name.split("/")[1])
+		) {
+			return false;
+		}
 
 		if (filters.tasks.length > 0 && !filters.tasks.includes(model.task.name)) {
-				return false;
-			}
+			return false;
+		}
 
-		if (filters.capabilities.length > 0 && !model.capabilities.some((c) => filters.capabilities.includes(c))) {
-				return false;
-			}
+		if (
+			filters.capabilities.length > 0 &&
+			!model.capabilities.some((c) => filters.capabilities.includes(c))
+		) {
+			return false;
+		}
 
-		if (filters.search && !model.name.toLowerCase().includes(filters.search.toLowerCase())) {
-				return false;
-			}
+		if (
+			filters.search &&
+			!model.name.toLowerCase().includes(filters.search.toLowerCase())
+		) {
+			return false;
+		}
 
 		return true;
 	});

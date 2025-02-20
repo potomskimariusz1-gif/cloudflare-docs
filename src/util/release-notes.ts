@@ -23,7 +23,9 @@ export async function getReleaseNotes(opts?: {
 		);
 	}
 
-	releaseNotes = opts?.deprecationsOnly ? releaseNotes.filter((x) => x.id === "api-deprecations") : releaseNotes.filter((x) => x.id !== "api-deprecations");
+	releaseNotes = opts?.deprecationsOnly
+		? releaseNotes.filter((x) => x.id === "api-deprecations")
+		: releaseNotes.filter((x) => x.id !== "api-deprecations");
 
 	const products = [
 		...new Set(releaseNotes.flatMap((x) => x.data.productName)),

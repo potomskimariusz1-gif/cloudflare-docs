@@ -37,18 +37,18 @@ export const GET: APIRoute = async () => {
 					## ${product}
 
 					${entries
-					?.map((e) => {
-						const line = `- [${e.data.title}](https://developers.cloudflare.com/${e.id}/)`;
+						?.map((e) => {
+							const line = `- [${e.data.title}](https://developers.cloudflare.com/${e.id}/)`;
 
-						const description = e.data.description;
+							const description = e.data.description;
 
-						if (description) {
-							return line.concat(`: ${description}`);
-						}
+							if (description) {
+								return line.concat(`: ${description}`);
+							}
 
-						return line;
-					})
-					.join("\n")}
+							return line;
+						})
+						.join("\n")}
 				`);
 			})
 			.join("\n\n")}

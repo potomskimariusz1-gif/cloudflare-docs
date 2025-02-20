@@ -9,8 +9,8 @@ export function registerTabs() {
 		return;
 	}
 
-	for (const el of elements) el.addEventListener("click", () => {
+	for (const el of elements)
+		el.addEventListener("click", () => {
 			track("tab click", { selected_option: el.innerText });
-		})
-	;
+		});
 }

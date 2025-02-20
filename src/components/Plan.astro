@@ -30,7 +30,8 @@ const props = z
 const input = props.parse(Astro.props);
 
 let availability;
-availability = "type" in input ? mappings[input.type] : (await indexPlans(input.id));
+availability =
+	"type" in input ? mappings[input.type] : await indexPlans(input.id);
 ---
 
 <div class="font-semibold text-blue-700 dark:text-indigo-300">
