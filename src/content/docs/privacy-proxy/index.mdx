@@ -17,7 +17,7 @@ The Cloudflare Privacy Proxy consists of a generic HTTPS CONNECT (and CONNECT-UD
 
 A high-level overview of how the Prixacy Proxy works is shown below. Control plane services are shown in orange. Dataplane services are shown in blue.
 
-![Privacy Proxy system overview](~/assets/images/privacy-gateway/privacy-proxy-system-overview.png)
+![Privacy Proxy system overview](~/assets/images/privacy-proxy/privacy-proxy-system-overview.png)
 </Description>
 
 ## Features
@@ -33,7 +33,7 @@ DNS resolution uses [Cloudflare's public resolver (1.1.1.1)](/1.1.1.1/) infrastr
 
 ## Privacy Proxy architecture
 
-![System architecture](~/assets/images/privacy-gateway/system-architecture.png)
+![System architecture](~/assets/images/privacy-proxy/system-architecture.png)
 
 ## Client initialization
 
@@ -43,7 +43,7 @@ The client should periodically refresh the region-based public key public key, e
 
 The region public key should be kept in the client session across multiple requests.
 
-![Client initialization](~/assets/images/privacy-gateway/client-initialization.png)
+![Client initialization](~/assets/images/privacy-proxy/client-initialization.png)
 
 ## Token issuance
 
@@ -53,7 +53,7 @@ When the Private Access Token (PAT) pool is low/empty, the client can use the st
 
 The Privacy API signs the Private Access Tokens (PAT) and returns them to the client, which can store them in a pool for later use.
 
-![Token issuance](~/assets/images/privacy-gateway/token-issuance.png)
+![Token issuance](~/assets/images/privacy-proxy/token-issuance.png)
 
 ## HTTP (Web) request flow
 
