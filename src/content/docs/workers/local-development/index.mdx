@@ -11,9 +11,9 @@ Cloudflare Workers provides two primary ways to develop and test your code local
 
 You can test changes locally using the following:
 
-- **Wrangler’s built-in dev command** [`wrangler dev`](/workers/wrangler/commands/#dev), which uses [`workerd`](https://github.com/cloudflare/workerd) and Miniflare to simulate production behavior and resource bindings locally. Wrangler also offers the option to [develop against remote resources](/workers/local-development/wrangler/#develop-using-remote-resources-and-bindings) with `wrangler dev --remote`, allowing you to test directly with data stored on Cloudflare's network.
+- **Wrangler’s built-in dev command** [`wrangler dev`](/workers/wrangler/commands/#dev), which runs your code in the [Workers Runtime](/workers/reference/how-workers-works/) ([`workerd`](https://github.com/cloudflare/workerd)) to simulate production behavior and resource bindings locally. Wrangler also offers the option to [develop against remote resources](/workers/local-development/wrangler/#develop-using-remote-resources-and-bindings) with `wrangler dev --remote`, allowing you to test directly with data stored on Cloudflare's network.
 
-- The **Cloudflare Vite plugin** (`@cloudflare/vite-plugin`), which integrates directly with [Vite](https://vite.dev/) and runs your code in the [Worker Runtime](/workers/reference/how-workers-works/) ([`workerd`](https://github.com/cloudflare/workerd)), while also offering features like [hot module replacement (HMR)](https://vite.dev/guide/features.html#hot-module-replacement). The Vite plugin is currently in **open beta**.
+- The **Cloudflare Vite plugin** (`@cloudflare/vite-plugin`), which integrates directly with [Vite](https://vite.dev/) and runs your code in the [Workers Runtime](/workers/reference/how-workers-works/) ([`workerd`](https://github.com/cloudflare/workerd)) to simulate production behavior and resource bindings locally. The Vite plugin also offers features like [hot module replacement (HMR)](https://vite.dev/guide/features.html#hot-module-replacement) and access to Vite's ecosystem and build time transformations. It is currently in **open beta**.
 
 Both approaches aim to provide confidence that your local environment will closely match the production runtime, removing the need to [test against remote resources](#develop-using-remote-resources-and-bindings).
 
