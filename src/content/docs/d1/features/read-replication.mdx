@@ -52,9 +52,30 @@ By using <GlossaryTooltip term="session">Sessions API</GlossaryTooltip> for read
 
 D1 read replication achieves this by attaching a <GlossaryTooltip term="bookmark">bookmark</GlossaryTooltip> to each write query within a Session. For more information, refer to [Bookmarks](/d1/reference/time-travel/#bookmarks).
 
-### Enable read replication
+### Check if read replication is enabled
 
-Use REST API to enable read replication on your D1 database.
+The following code uses REST API to check if read replication is enabled / disabled.
+
+```ts
+const headers = new Headers({
+  "Authorization": `Bearer ${TOKEN}`
+});
+
+const response = await fetch("/v4/accounts/{account_id}/d1/database/{database_id}", {
+  method: "GET",
+  headers: headers
+});
+
+const data = await response.json();
+console.log(data.read_replication.mode);
+```
+
+- If the output is `auto`, read replication is enabled.
+- If the output is `disabled`, read replication is disabled.
+
+### Enable or disable read replication
+
+Use REST API to enable / disable read replication on your D1 database.
 
 ```ts
 const headers = new Headers({
@@ -70,6 +91,9 @@ await fetch ("/v4/accounts/{account_id}/d1/database/{database_id}", {
  }
 )
 ```
+
+- Set `"mode":"auto"` to enable read replication.
+- Set `"mode":"disable"` to disable read replication.
 
 If this is your first time using REST API, create an API token. Refer to [Create API token](/fundamentals/api/get-started/create-token/).
 
@@ -146,23 +170,23 @@ In this scenario, you want the first request of the page to show a list of all t
 Then, when opening an individual electricity bill statement, we can continue using the same Session by passing the `bookmark` from the first query to subsequent requests. Since each bill statement is immutable, any bill statement listed from the first query is guaranteed to be available in subsequent requests using the same Session.
 
 ```ts
-async function listBillStatements(accountId: string, db: D1Database): ListBillStatementsResult {
-  const session = db.withSession("first-primary");
-  const { results } = session
-	.prepare("SELECT * FROM bills WHERE accountId = ?")
-	.bind(accountId)
-	.run();
-  return { bookmark: session.getBookmark(), bills: results };
+async function listBillStatements(accountId: string, db: D1Database): Promise<ListBillStatementsResult> {
+	const session = db.withSession('first-primary');
+	const { results } = (await session.prepare('SELECT * FROM bills WHERE accountId = ?').bind(accountId).run()) as unknown as {
+		results: Bill[];
+	};
+	return { bookmark: session.getBookmark() ?? 'first-unconstrained', bills: results };
 }
 
-async function getBillStatement(accountId: string, billId: string, bookmark: string): GetBillStatementResult {
-  // NOTE: We achieve sequential consistency with the given `bookmark`.
-  const session = db.withSession(bookmark);
-  const { results } = session
-	.prepare("SELECT * FROM bills WHERE accountId = ? AND billId = ? LIMIT 1")
-	.bind(accountId, billId)
-	.first();
-  return { bookmark: session.getBookmark(), bill: results };
+async function getBillStatement(accountId: string, billId: string, bookmark: string, db: D1Database): Promise<GetBillStatementResult> {
+	// NOTE: We achieve sequential consistency with the given `bookmark`.
+	const session = db.withSession(bookmark);
+	const result = (await session
+		.prepare('SELECT * FROM bills WHERE accountId = ? AND billId = ? LIMIT 1')
+		.bind(accountId, billId)
+		.first()) as unknown as Bill;
+
+	return { bookmark: session.getBookmark() ?? 'first-unconstrained', bill: result };
 }
 ```
 
@@ -189,15 +213,98 @@ const result = await session.run()
 
 #### Example of using `bookmark`
 
+This example follows from [Example of using `first-primary`](/d1/features/read-replication/#example-of-using-first-primary), but retrieves the `bookmark` from HTTP cookie.
 
+```ts collapse={1-10, 22-42, 61-86}
+import { ListBillStatementsResult, GetBillStatementResult, Bill } from './types';
 
-```ts
-//TBC
+async function listBillStatements(accountId: string, db: D1Database): Promise<ListBillStatementsResult> {
+	const session = db.withSession('first-primary');
+	const { results } = (await session.prepare('SELECT * FROM bills WHERE accountId = ?').bind(accountId).run()) as unknown as {
+		results: Bill[];
+	};
+	return { bookmark: session.getBookmark() ?? 'first-unconstrained', bills: results };
+}
+
+async function getBillStatement(accountId: string, billId: string, bookmark: string, db: D1Database): Promise<GetBillStatementResult> {
+	// NOTE: We achieve sequential consistency with the given `bookmark`.
+	const session = db.withSession(bookmark);
+	const result = (await session
+		.prepare('SELECT * FROM bills WHERE accountId = ? AND billId = ? LIMIT 1')
+		.bind(accountId, billId)
+		.first()) as unknown as Bill;
+
+	return { bookmark: session.getBookmark() ?? 'first-unconstrained', bill: result };
+}
+
+export default {
+	async fetch(request, env, ctx): Promise<Response> {
+		// URL path
+		const url = new URL(request.url);
+		const path = url.pathname;
+
+		// Method
+		const method = request.method;
+
+		// Fetch using first-unconstrained
+		if (path === '/bills' && method === 'GET') {
+			// List bills
+			const result = await listBillStatements('1', env.DB);
+			return new Response(JSON.stringify(result), { status: 200 });
+		}
+		if (path === '/bill' && method === 'GET') {
+			// Get bill
+			const result = await getBillStatement('1', '1', 'first-unconstrained', env.DB);
+			return new Response(JSON.stringify(result), { status: 200 });
+		}
+
+		// Fetch using bookmark from cookie
+		if (path === '/bill/cookie' && method === 'GET') {
+			// Get bill
+			const cookie = request.headers.get('Cookie');
+			const bookmark =
+				cookie
+					?.split(';')
+					.find((c) => c.trim().startsWith('X-D1-Bookmark'))
+					?.split('=')[1] ?? 'first-unconstrained';
+			console.log('bookmark', bookmark);
+			const result = await getBillStatement('1', '1', bookmark, env.DB);
+			return new Response(JSON.stringify(result), {
+				status: 200,
+				headers: {
+					'Set-Cookie': `X-D1-Bookmark=${result.bookmark}; Path=/; SameSite=Strict`,
+				},
+			});
+		}
+
+		// To ingest data
+		if (path === '/bill' && method === 'POST') {
+			// Create bill
+			const { accountId, amount, description, due_date } = await request.json();
+			const session = env.DB.withSession('first-primary');
+			const { results } = await session
+				.prepare('INSERT INTO bills (accountId, amount, description, due_date) VALUES (?, ?, ?, ?) RETURNING *')
+				.bind(accountId, amount, description, due_date)
+				.run();
+			const bookmark = session.getBookmark() ?? 'first-unconstrained';
+
+			return new Response(JSON.stringify(results), {
+				status: 201,
+				headers: {
+					// Set bookmark cookie
+					'Set-Cookie': `X-D1-Bookmark=${bookmark}; Path=/; SameSite=Strict`,
+				},
+			});
+		}
+		return new Response('Not Found', {
+			status: 404,
+			statusText: 'Not Found',
+		});
+	},
+} satisfies ExportedHandler<Env>;
 ```
 
 ### Check if read replication is enabled
-
-### Disable read replication
 
 
 
