@@ -7,13 +7,12 @@ head: []
 description: Develop your Workers locally.
 ---
 
-Cloudflare Workers provides two primary ways to develop and test your code locally. Local development ensures a fast feedback loop, keeps iteration times low, and lets you experiment before deploying to production.
+When building projects on Cloudflare Workers, you have two options for local development:
 
-You can test changes locally using the following:
+- [**Wrangler**](/workers/wrangler/), using the built-in [`wrangler dev`](/workers/wrangler/commands/#dev) command.
+- [Vite](https://vite.dev/), using the [**Cloudflare Vite plugin**](/workers/vite-plugin/).
 
-- **Wrangler’s built-in dev command** [`wrangler dev`](/workers/wrangler/commands/#dev), which runs your code in the [Workers Runtime](/workers/reference/how-workers-works/) ([`workerd`](https://github.com/cloudflare/workerd)) to simulate production behavior and resource bindings locally. Wrangler also offers the option to [develop against remote resources](/workers/local-development/wrangler/#develop-using-remote-resources-and-bindings) with `wrangler dev --remote`, allowing you to test directly with data stored on Cloudflare's network.
-
-- The **Cloudflare Vite plugin** (`@cloudflare/vite-plugin`), which integrates directly with [Vite](https://vite.dev/) and runs your code in the [Workers Runtime](/workers/reference/how-workers-works/) ([`workerd`](https://github.com/cloudflare/workerd)) to simulate production behavior and resource bindings locally. The Vite plugin also offers features like [hot module replacement (HMR)](https://vite.dev/guide/features.html#hot-module-replacement) and access to Vite's ecosystem and build time transformations. It is currently in **open beta**.
+Both Wrangler and the Vite plugin use [Miniflare](/workers/testing/miniflare/) to provide an accurate **local** simulation of the Cloudflare Workers runtime, ([`workerd`](https://github.com/cloudflare/workerd)). If you need to develop with **remote resources**, Wrangler is the only option that provides remote development with the `wrangler dev --remote` command.
 
 ## Choosing Between Wrangler and Vite
 
@@ -22,13 +21,13 @@ Deciding between Wrangler and the Cloudflare Vite plugin depends on your project
 ### When to use Wrangler
 
 - **Backend & Workers-focused:**
-  If you're primarily building APIs, serverless functions, or background tasks that need to closely match production behavior, use Wrangler.
+  If you're primarily building APIs, serverless functions, or background tasks, use Wrangler.
 
 - **Remote development:**
-  If your project needs the ability to develop and test using production resources and data, use Wrangler's `--remote` flag.
+  If your project needs the ability to develop and test using production resources and data on Cloudflare's network, use Wrangler's `--remote` flag.
 
 - **Simple frontends:**
-  If you have minimal frontend requirements and don’t need hot reloading or advanced bundling, Wrangler by itself is sufficient.
+  If you have minimal frontend requirements and don’t need hot reloading or advanced bundling, Wrangler can meet your needs.
 
 ### When to use the Cloudflare Vite Plugin
 
@@ -36,7 +35,7 @@ Deciding between Wrangler and the Cloudflare Vite plugin depends on your project
   If you rely on modern frameworks like React, Vue, Svelte, or Solid, the Vite plugin simplifies setup and integration.
 
 - **Rapid iteration (HMR):**
-  If you need near-instant updates in the browser, the Vite plugin provides Hot Module Replacement (HMR) during local development.
+  If you need near-instant updates in the browser, the Vite plugin provides [Hot Module Replacement (HMR)](https://vite.dev/guide/features.html#hot-module-replacement) during local development.
 
 - **Advanced optimizations:**
   If you require more advanced optimizations (code splitting, efficient bundling, CSS handling, etc), Vite is a strong fit.
