@@ -12,6 +12,10 @@
     "tags": [],
     "properties": [
         {
+            "property_id": "async_queue",
+            "value": "true"
+        },
+        {
             "property_id": "context_window",
             "value": "24000"
         },
@@ -31,6 +35,10 @@
             ]
         },
         {
+            "property_id": "function_calling",
+            "value": "true"
+        },
+        {
             "property_id": "terms",
             "value": "https://github.com/meta-llama/llama-models/blob/main/models/llama3_3/LICENSE"
         }
@@ -47,10 +55,6 @@
                             "minLength": 1,
                             "description": "The input text prompt for the model to generate a response."
                         },
-                        "lora": {
-                            "type": "string",
-                            "description": "Name of the LoRA (Low-Rank Adaptation) model to fine-tune the base model."
-                        },
                         "response_format": {
                             "title": "JSON Mode",
                             "type": "object",
@@ -64,6 +68,10 @@
                                 },
                                 "json_schema": {}
                             }
+                        },
+                        "guided_json": {
+                            "type": "object",
+                            "description": "JSON schema that should be fulfilled for the response."
                         },
                         "raw": {
                             "type": "boolean",
@@ -82,7 +90,7 @@
                         },
                         "temperature": {
                             "type": "number",
-                            "default": 0.6,
+                            "default": 0.15,
                             "minimum": 0,
                             "maximum": 5,
                             "description": "Controls the randomness of the output; higher values produce more random results."
@@ -141,15 +149,67 @@
                                         "type": "string",
                                         "description": "The role of the message sender (e.g., 'user', 'assistant', 'system', 'tool')."
                                     },
-                                    "content": {
+                                    "tool_call_id": {
                                         "type": "string",
-                                        "description": "The content of the message as a string."
+                                        "description": "The tool call id. Must be supplied for tool calls for Mistral-3. If you don't know what to put here you can fall back to 000000001",
+                                        "pattern": "[a-zA-Z0-9]{9}"
+                                    },
+                                    "content": {
+                                        "oneOf": [
+                                            {
+                                                "type": "string",
+                                                "description": "The content of the message as a string."
+                                            },
+                                            {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "type": {
+                                                            "type": "string",
+                                                            "description": "Type of the content provided"
+                                                        },
+                                                        "text": {
+                                                            "type": "string"
+                                                        },
+                                                        "image_url": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "url": {
+                                                                    "type": "string",
+                                                                    "pattern": "^data:*",
+                                                                    "description": "image uri with data (e.g. data:image/jpeg;base64,/9j/...). HTTP URL will not be accepted"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "type": {
+                                                        "type": "string",
+                                                        "description": "Type of the content provided"
+                                                    },
+                                                    "text": {
+                                                        "type": "string"
+                                                    },
+                                                    "image_url": {
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "url": {
+                                                                "type": "string",
+                                                                "pattern": "^data:*",
+                                                                "description": "image uri with data (e.g. data:image/jpeg;base64,/9j/...). HTTP URL will not be accepted"
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        ]
                                     }
-                                },
-                                "required": [
-                                    "role",
-                                    "content"
-                                ]
+                                }
                             }
                         },
                         "functions": {
@@ -325,6 +385,10 @@
                                 "json_schema": {}
                             }
                         },
+                        "guided_json": {
+                            "type": "object",
+                            "description": "JSON schema that should be fufilled for the response."
+                        },
                         "raw": {
                             "type": "boolean",
                             "default": false,
@@ -342,7 +406,7 @@
                         },
                         "temperature": {
                             "type": "number",
-                            "default": 0.6,
+                            "default": 0.15,
                             "minimum": 0,
                             "maximum": 5,
                             "description": "Controls the randomness of the output; higher values produce more random results."
@@ -387,6 +451,92 @@
                     "required": [
                         "messages"
                     ]
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "requests": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "external_reference": {
+                                        "type": "string",
+                                        "description": "User-supplied reference. This field will be present in the response as well it can be used to reference the request and response. It's NOT validated to be unique."
+                                    },
+                                    "prompt": {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "description": "Prompt for the text generation model"
+                                    },
+                                    "stream": {
+                                        "type": "boolean",
+                                        "default": false,
+                                        "description": "If true, the response will be streamed back incrementally using SSE, Server Sent Events."
+                                    },
+                                    "max_tokens": {
+                                        "type": "integer",
+                                        "default": 256,
+                                        "description": "The maximum number of tokens to generate in the response."
+                                    },
+                                    "temperature": {
+                                        "type": "number",
+                                        "default": 0.6,
+                                        "minimum": 0,
+                                        "maximum": 5,
+                                        "description": "Controls the randomness of the output; higher values produce more random results."
+                                    },
+                                    "top_p": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 2,
+                                        "description": "Adjusts the creativity of the AI's responses by controlling how many possible words it considers. Lower values make outputs more predictable; higher values allow for more varied and creative responses."
+                                    },
+                                    "seed": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 9999999999,
+                                        "description": "Random seed for reproducibility of the generation."
+                                    },
+                                    "repetition_penalty": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 2,
+                                        "description": "Penalty for repeated tokens; higher values discourage repetition."
+                                    },
+                                    "frequency_penalty": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 2,
+                                        "description": "Decreases the likelihood of the model repeating the same lines verbatim."
+                                    },
+                                    "presence_penalty": {
+                                        "type": "number",
+                                        "minimum": 0,
+                                        "maximum": 2,
+                                        "description": "Increases the likelihood of the model introducing new topics."
+                                    },
+                                    "response_format": {
+                                        "title": "JSON Mode",
+                                        "type": "object",
+                                        "properties": {
+                                            "type": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "json_object",
+                                                    "json_schema"
+                                                ]
+                                            },
+                                            "json_schema": {}
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "required": [
+                        "requests"
+                    ]
                 }
             ]
         },
@@ -394,6 +544,7 @@
             "oneOf": [
                 {
                     "type": "object",
+                    "contentType": "application/json",
                     "properties": {
                         "response": {
                             "type": "string",
@@ -444,7 +595,19 @@
                 },
                 {
                     "type": "string",
+                    "contentType": "text/event-stream",
                     "format": "binary"
+                },
+                {
+                    "type": "object",
+                    "contentType": "application/json",
+                    "title": "Async response",
+                    "properties": {
+                        "request_id": {
+                            "type": "string",
+                            "description": "The async request id that can be used to obtain the results."
+                        }
+                    }
                 }
             ]
         }
