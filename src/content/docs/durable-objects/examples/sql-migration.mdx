@@ -128,7 +128,7 @@ export default {
 		// Inserts a user into the 'users' table
 		stub.insertUser("John");
 
-		return new Response("User inserted", { status: 200 });
+		return new Response("User inserted successfully", { status: 200 });
 	},
 } satisfies ExportedHandler<Env>;
 ```
@@ -140,6 +140,7 @@ Finally, configure your Wrangler file to include a Durable Object [binding](/dur
 <WranglerConfig>
 
 ```toml title="wrangler.toml"
+main = "src/index.ts"
 name = "sql-migration-do"
 
 [[durable_objects.bindings]]
