@@ -11,23 +11,6 @@ The Workers Binding API allows you to execute advanced browser rendering scripts
 
 The Workers Browser Rendering API allows developers to programmatically control and interact with a headless browser instance and create automation flows for their applications and products. Once you configure the service, Workers Browser Rendering gives you access to a WebSocket endpoint that speaks the [DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/). DevTools is what allows Cloudflare to instrument a Chromium instance running in the Cloudflare global network.
 
-### Checking chromium version
-
-Choose one of the following options to confirm the Chromium version powering your rendering tasks:
-
-1. **Check directly in your browser**
-
-   Open Developer Tools in a full Chrome or Chromium browser instance. Navigate to `chrome://version` or open the menu > Help > About Google Chrome to view the exact version.
-
-2. **Use `browser.version()` for automation tools like [Playwright](/browser-rendering/platform/playwright/) or [Puppeteer](/browser-rendering/platform/puppeteer/)**
-
-   If you're using automation frameworks, you can programmatically retrieve the version:
-
-```javascript
-const version = await browser.version();
-console.log("Chromium version:", version);
-```
-
 ## Browser Rendering options
 
 The following options are available for browser rendering tasks:
@@ -35,3 +18,42 @@ The following options are available for browser rendering tasks:
 <DirectoryListing />
 
 Use the Workers Binding API when you need advanced browser automation, custom workflows, or complex interactions beyond basic rendering. For quick, one-off tasks like capturing screenshots or extracting HTML, the [REST API](/browser-rendering/rest-api/) is the simpler choice.
+
+### Chromium version
+Cloudflare Browser Rendering currently uses Chromium version 124.0.6367.257.
+
+If you want to programmatically confirm the version in your environment, you can retrieve it using either [Puppeteer](/browser-rendering/platform/puppeteer/) or [Playwright](/browser-rendering/platform/playwright/). 
+
+#### Using [Puppeteer](/browser-rendering/platform/puppeteer/)
+
+```javascript
+const puppeteer = require('puppeteer');
+
+(async () => {
+  const browser = await puppeteer.launch();
+  const version = await browser.version();
+  console.log('Chromium version:', version);
+  await browser.close();
+})().catch(console.error);
+```
+Example output
+```
+Chromium version: 136.0.7103.25
+```
+
+#### Using [Playwright](/browser-rendering/platform/playwright/)
+
+```javascript
+const { chromium } = require('playwright');
+
+(async () => {
+  const browser = await chromium.launch();
+  const version = await browser.version();
+  console.log('Chromium version:', version);
+  await browser.close();
+})().catch(console.error);
+```
+Example output
+```
+Chromium version: HeadlessChrome/123.0.6312.86
+```
