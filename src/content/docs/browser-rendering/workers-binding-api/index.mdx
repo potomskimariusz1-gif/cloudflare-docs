@@ -7,9 +7,9 @@ sidebar:
 
 import { DirectoryListing, TabItem, Tabs } from "~/components";
 
-The Workers Binding API allows you to execute advanced browser rendering scripts within Cloudflare Workers. It provides developers the flexibility to automate and control complex workflows and browser interactions.
+The Workers Binding API allows you to execute advanced browser rendering scripts within [Cloudflare Workers](/workers/). It provides developers the flexibility to automate and control complex workflows and browser interactions.
 
-The Workers Browser Rendering API allows developers to programmatically control and interact with a headless browser instance and create automation flows for their applications and products. Once you configure the service, Workers Browser Rendering gives you access to a WebSocket endpoint that speaks the [DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/). DevTools is what allows Cloudflare to instrument a Chromium instance running in the Cloudflare global network.
+Browser Rendering allows developers to programmatically control and interact with a headless browser instance and create automation flows for their applications and products. Once configured, the service provides access to a WebSocket endpoint that speaks the [DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/). This protocol is what allows Cloudflare to instrument a Chromium instance running in the Cloudflare global network.
 
 ## Browser Rendering options
 
@@ -19,9 +19,9 @@ The following options are available for browser rendering tasks:
 
 Use the Workers Binding API when you need advanced browser automation, custom workflows, or complex interactions beyond basic rendering. For quick, one-off tasks like capturing screenshots or extracting HTML, the [REST API](/browser-rendering/rest-api/) is the simpler choice.
 
-### Chromium version
+## Chromium version
 
-Cloudflare Browser Rendering currently uses Chromium version 124.0.6367.257.
+Cloudflare Browser Rendering currently uses **Chromium version 124.0.6367.257**.
 
 If you want to programmatically confirm the version in your environment, you can retrieve it using either [Puppeteer](/browser-rendering/platform/puppeteer/) or [Playwright](/browser-rendering/platform/playwright/).
 
