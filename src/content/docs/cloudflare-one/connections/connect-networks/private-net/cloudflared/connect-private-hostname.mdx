@@ -68,15 +68,15 @@ This section covers how to enable remote access to a private hostname applicatio
 
 To route your internal DNS resolver through Cloudflare Tunnel:
 
-1. Go to **Networks** > **Routes**.
+1. Go to **Networks** > **Routes** > **CIDR**.
 
-2. Select **Create route**.
+2. Select **Create CIDR route**.
 
 3. In **CIDR**, enter the private IP address of your internal DNS resolver.
 
 4. For **Tunnel**, select the Cloudflare Tunnel that is being used to connect the private network to Cloudflare.
 
-5. Select **Create**.
+5. Select **Create route**.
 
 ### 3. Create a resolver policy
 
@@ -106,7 +106,7 @@ In your [device profiles](/cloudflare-one/connections/connect-devices/warp/confi
 - Private network CIDR where the application is located (for example, `10.0.0.0/8`)
 - Internal DNS resolver IP
 
-For more details on configuring Split Tunnels, refer to [Route private network IPs through WARP]().
+For more details on configuring Split Tunnels, refer to [Route private network IPs through WARP](/cloudflare-one/connections/connect-networks/private-net/cloudflared/connect-cidr/#3-route-private-network-ips-through-warp).
 
 ### 6. (Recommended) Filter network traffic with Gateway
 
