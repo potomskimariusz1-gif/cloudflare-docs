@@ -36,11 +36,13 @@ Figures 1 and 2 illustrate the flow of DNS and network traffic when a user conne
 
 	The selected CGNAT IP is called the initial resolved IP.
 5. Gateway's network engine stores the mapping between the private hostname (`wiki.internal.local`), initial resolved IP (`100.80.0.1`), and the actual IP (`10.0.0.5`).
-6. The WARP client receives the initial resolved IP (`100.80.0.1`) in the DNS response.
+6. The WARP client receives the initial resolved IP (`100.80.0.1`) in the DNS response. Each WARP device will receive a unique, ephemeral initial resolved IP.
 
-As shown in Figure 2 below, the WARP client will now send `wiki.internal.local` traffic to the initial resolved IP. The initial resolved IP mechanism is required because Gateway's network engine operates at L3/L4 and can only see IPs (not hostnames) when processing the connection. Because the packet's destination IP falls within the designated CGNAT range, Gateway knows that it corresponds to a hostname route and can apply hostname-based policies. Traffic that passes your Gateway policies will route through Cloudflare Tunnel to the application's actual origin IP.
+As shown in Figure 2 below, the WARP client will now send `wiki.internal.local` traffic to the initial resolved IP.
 
-![Figure 2: Network traffic flow for a private hostname route](~/assets/images/cloudflare-one/connections/private-hostname-route-2.png "Figure 1: Network traffic flow for a private hostname route")
+![Figure 2: Network traffic flow for a private hostname route](~/assets/images/cloudflare-one/connections/private-hostname-route-2.png "Figure 2: Network traffic flow for a private hostname route")
+
+The initial resolved IP mechanism is required because Gateway's network engine operates at L3/L4 and can only see IPs (not hostnames) when processing the connection. Because the packet's destination IP falls within the designated CGNAT range, Gateway knows that it corresponds to a hostname route and can apply hostname-based policies. Traffic that passes your Gateway policies will route through Cloudflare Tunnel to the application's actual origin IP. When the initial resolved IP expires, WARP will send a new DNS request (Figure 1) to refresh the initial resolved IP.
 
 To learn more about hostname routing, refer to the [Cloudflare blog]().
 
