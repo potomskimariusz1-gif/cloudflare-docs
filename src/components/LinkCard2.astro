@@ -1,0 +1,39 @@
+---
+import { z } from "astro:schema";
+import { Icon } from "astro-icon/components";
+import { marked } from "marked";
+
+const props = z.object({
+	title: z.string(),
+	description: z.string(),
+	link: z.string(),
+	icon: z.string(),
+});
+
+const { title, description, link, icon } = props.parse(Astro.props);
+---
+
+<div class="not-content">
+	<a
+		href={link}
+		class="flex size-full gap-4 rounded-md border border-solid border-gray-200 p-4 text-inherit no-underline hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+	>
+		<Icon
+			name={icon}
+			size="40px"
+			class="shrink-0 basis-10 rounded-full bg-orange-50 p-1 text-orange-500 dark:bg-orange-950"
+		/>
+		<div>
+			<p class="font-semibold">{title}</p>
+			{
+				description && (
+					<div
+						class="mt-1 line-clamp-2 text-sm"
+						title={description}
+						set:html={marked.parse(description)}
+					/>
+				)
+			}
+		</div>
+	</a>
+</div>

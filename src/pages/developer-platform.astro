@@ -10,12 +10,18 @@ import Templates from "~/assets/images/developer-platform/templates.png";
 import Playground from "~/assets/images/developer-platform/playground.png";
 import { YouTube } from "~/components";
 
+import ProductPills from "~/components/changelog/ProductPills.astro";
+import LinkCard2 from "~/components/LinkCard2.astro";
+import { getCollection, getEntry } from "astro:content";
+import { getChangelogs } from "~/util/changelog";
+
 const props = {
 	frontmatter: {
 		title: "Developer platform",
 		description:
 			"The Cloudflare Developer platform is a collection of tools and services that help you build and deploy web applications.",
 		template: "splash",
+		feedback: false,
 	},
 	hideTitle: true,
 	hideBreadcrumbs: true,
@@ -36,7 +42,7 @@ const sections = [
 	},
 	{
 		header: "Media & real-time",
-		products: ["images", "stream", "calls"],
+		products: ["images", "stream", "realtime"],
 	},
 ];
 
@@ -58,6 +64,19 @@ const cards = [
 		},
 	},
 ];
+
+const products = await getCollection(
+	"products",
+	(e) => e.data.product.group?.toLowerCase() === "developer platform",
+);
+
+const ids = products.map((e) => e.id);
+
+const changelogs = await getChangelogs({
+	filter: (e) => {
+		return e.data.products.some((p) => ids.includes(p.id));
+	},
+});
 
 const socials = [
 	{
@@ -99,15 +118,25 @@ const socials = [
 						View all {section.header} products
 					</a>
 				</div>
-				<div class="grid grid-cols-3 gap-4">
-					{section.products.map((product) => (
-						<a
-							href={`/${product}/`}
-							class="rounded-md border border-solid border-gray-200 p-6 text-inherit no-underline hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
-						>
-							{product}
-						</a>
-					))}
+				<div class="not-content grid grid-cols-3 gap-4">
+					{section.products.map(async (product) => {
+						const entry = await getEntry("products", product);
+
+						if (!entry) {
+							throw new Error(
+								`[developer-platform.astro] ${product} does not exist`,
+							);
+						}
+
+						return (
+							<LinkCard2
+								title={entry.data.product.title}
+								description={entry.data.meta.description}
+								link={entry.data.product.url}
+								icon={product}
+							/>
+						);
+					})}
 				</div>
 			</div>
 		))
@@ -153,21 +182,42 @@ const socials = [
 	</div>
 	<div class="flex flex-col items-center justify-center gap-10">
 		<h2>Developer Platform changelog</h2>
-		<div class="rounded-sm border border-gray-200 p-4">
-			<p>foo</p>
+		<div
+			class="h-96 w-3/4 overflow-y-scroll rounded-sm border border-gray-200 p-4"
+		>
+			<ul>
+				{
+					changelogs.slice(0, 5).map((changelog) => (
+						<li class="list-none">
+							<h3>
+								<a href={`/${changelog.id}/`} class="text-black">
+									{changelog.data.title}
+								</a>
+							</h3>
+							<ProductPills products={changelog.data.products} />
+							<p>
+								<strong>
+									{changelog.data.date.toISOString().slice(0, 10)}
+								</strong>
+							</p>
+							<p>{changelog.data.description}</p>
+						</li>
+					))
+				}
+			</ul>
 		</div>
 		<a href="/">See what else we're building</a>
 	</div>
 	<div class="flex flex-col items-center justify-center">
 		<h2>Reach out to our communities</h2>
-		<div class="grid grid-cols-3 gap-4">
+		<div class="grid w-full grid-cols-3 gap-4">
 			{
 				socials.map((social) => (
 					<a
 						href={social.href}
-						class="flex w-full items-center justify-center gap-2 text-black no-underline"
+						class="flex w-full items-center justify-center gap-4 rounded-sm border border-gray-200 p-4 font-semibold text-black no-underline dark:border-gray-700"
 					>
-						<Icon name={social.icon} />
+						<Icon name={social.icon} size="2rem" />
 						{social.title}
 					</a>
 				))
