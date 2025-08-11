@@ -1,0 +1,932 @@
+---
+pcx_content_type: concept
+title: Environments
+head: []
+description: Deploy multiple isolated copies of your Worker application with independent configurations, resources, and deployment URLs.
+---
+
+import { WranglerConfig, Render, TabItem, Tabs, Steps } from "~/components";
+
+An **environment** is a separate, isolated instance of your Worker application. For example, you can have a `staging` and a `production` environment running simultaneously.
+
+Each environment deploys to its own unique URL and can have different configuration — such as different resources that your bindings connect to, different environment variables, and different secrets. This isolation lets you test changes in one environment without affecting users in another.
+
+You first define environments in Wrangler configuration, and then deploy them either manually or automatically through our Git integration.
+
+## Configuration
+
+You define environments in your Wrangler configuration file under the `env` field:
+
+<WranglerConfig>
+
+```jsonc
+{
+	"name": "my-api",
+	"main": "src/index.js",
+	"compatibility_date": "$today",
+
+	// Environment-specific configurations
+	"env": {
+		"production": {
+			"vars": {
+				"ENVIRONMENT": "production",
+				"API_ENDPOINT": "https://api.example.com",
+			},
+			"d1_databases": [
+				{
+					"binding": "DB",
+					"database_name": "my-db-production",
+					"database_id": "production-db-id",
+				},
+			],
+			"routes": ["example.com/*"],
+		},
+		"staging": {
+			"vars": {
+				"ENVIRONMENT": "staging",
+				"API_ENDPOINT": "https://staging.example.com",
+			},
+			"d1_databases": [
+				{
+					"binding": "DB",
+					"database_name": "my-db-staging",
+					"database_id": "staging-db-id",
+				},
+			],
+		},
+	},
+}
+```
+
+</WranglerConfig>
+
+<details>
+<summary>Complete configuration example with all binding types</summary>
+
+This comprehensive example shows how to configure all available binding types across environments. The inline comments explain isolation requirements for each binding type.
+
+<WranglerConfig>
+
+```jsonc
+{
+	"name": "my-worker",
+	"main": "src/index.js",
+	"compatibility_date": "$today",
+
+	// Environment-specific configurations
+	"env": {
+		"production": {
+			"name": "my-worker-production",
+			// Environment variables - can have different values per environment
+			"vars": {
+				"API_HOST": "example.com",
+				"API_ACCOUNT_ID": "example_user",
+				"SERVICE_X_DATA": {
+					"URL": "service-x-api.prod.example",
+					"MY_ID": 123,
+				},
+			},
+			// Routes - must be unique (can't have same route for staging and production)
+			"route": {
+				"pattern": "example.org/*",
+				"zone_name": "example.org",
+			},
+			// Service bindings - target specific Worker environments
+			// Use just the worker name to target its production environment
+			"services": [
+				{
+					"binding": "<BINDING_NAME>",
+					"service": "<WORKER_NAME>", // Targets the production environment
+					"entrypoint": "<ENTRYPOINT_NAME>",
+				},
+			],
+			// KV namespaces - use different IDs for each environment to isolate data
+			"kv_namespaces": [
+				{
+					"binding": "<MY_NAMESPACE>",
+					"id": "<PRODUCTION_KV_ID>"
+				},
+				{
+					"binding": "<BINDING_NAME2>",
+					"id": "<PRODUCTION_NAMESPACE_ID2>",
+				},
+			],
+			// D1 databases - use different IDs for each environment to isolate data
+			"d1_databases": [
+				{
+					"binding": "<BINDING_NAME>",
+					"database_name": "<DATABASE_NAME>",
+					"database_id": "<PRODUCTION_DATABASE_ID>"
+				},
+			],
+			// R2 buckets - use different bucket names for each environment to isolate files
+			"r2_buckets": [
+				{
+					"binding": "<BINDING_NAME1>",
+					"bucket_name": "<PRODUCTION_BUCKET_NAME>"
+				},
+				{
+					"binding": "<BINDING_NAME2>",
+					"bucket_name": "<PRODUCTION_BUCKET_NAME2>",
+					"jurisdiction": "eu",
+				},
+			],
+			// Durable Objects - automatically isolated by environment
+			"durable_objects": {
+				"bindings": [
+					{
+						"name": "<BINDING_NAME>",
+						"class_name": "<CLASS_NAME>",
+					},
+					{
+						"name": "MY_DURABLE_OBJECT",
+						"class_name": "MyDurableObjectClass",
+						"script_name": "external-worker", // Will become "external-worker-production"
+						"environment": "production",
+					},
+				],
+			},
+			// Workflows - must have unique names (account-level resources)
+			"workflows": [
+				{
+					"name": "my-workflow-production", // Must be unique per environment
+					"binding": "MY_WORKFLOW",
+					"class_name": "MyWorkflow",
+				},
+			],
+			// Queues - use different queue names for each environment to isolate messages
+			"queues": {
+				"producers": [
+					{
+						"binding": "<BINDING_NAME>",
+						"queue": "production-queue"
+						"delivery_delay": 60,
+					},
+				],
+				"consumers": [
+					{
+						"queue": "production-queue", // Must match producer queue name
+						"max_batch_size": 10,
+						"max_batch_timeout": 30,
+						"max_retries": 10,
+						"dead_letter_queue": "production-queue-dlq",
+						"max_concurrency": 5,
+						"retry_delay": 120,
+					},
+				],
+			},
+			// Analytics Engine - use different dataset names for each environment
+			"analytics_engine_datasets": [
+				{
+					"binding": "<BINDING_NAME>",
+					"dataset": "<PRODUCTION_DATASET_NAME>"
+				},
+			],
+			// Vectorize - must have unique index names per account
+			"vectorize": [
+				{
+					"binding": "<BINDING_NAME>",
+					"index_name": "<PRODUCTION_INDEX_NAME>", // Must be unique per environment
+				},
+			],
+			// AI binding - can be shared across environments
+			"ai": {
+				"binding": "AI",
+			},
+			// Browser binding - can be shared across environments
+			"browser": {
+				"binding": "<BINDING_NAME>",
+			},
+			// Email bindings - can use different addresses per environment
+			"send_email": [
+				{
+					"name": "<NAME_FOR_BINDING1>",
+				},
+				{
+					"name": "<NAME_FOR_BINDING2>",
+					"destination_address": "<YOUR_EMAIL>@example.com",
+				},
+				{
+					"name": "<NAME_FOR_BINDING3>",
+					"allowed_destination_addresses": [
+						"<YOUR_EMAIL>@example.com",
+						"<YOUR_EMAIL2>@example.com",
+					],
+				},
+			],
+			// Hyperdrive - use different IDs for each environment to isolate database connections
+			"hyperdrive": [
+				{
+					"binding": "<BINDING_NAME>",
+					"id": "<PRODUCTION_HYPERDRIVE_ID>"
+				},
+			],
+			// mTLS certificates - typically different per environment
+			"mtls_certificates": [
+				{
+					"binding": "<BINDING_NAME1>",
+					"certificate_id": "<PRODUCTION_CERTIFICATE_ID>",
+				},
+			],
+			// Version metadata - can be shared across environments
+			"version_metadata": {
+				"binding": "CF_VERSION_METADATA",
+			},
+			// Tail consumers - automatically target the specified environment
+			"tail_consumers": [
+				{
+					"service": "tail-worker",
+				},
+			],
+			"triggers": {
+				"crons": ["* * * * *"],
+			},
+			"observability": {
+				"enabled": true,
+				"head_sampling_rate": 0.1,
+			},
+		},
+		"staging": {
+			"name": "my-worker-staging",
+			// Environment variables - can have different values per environment
+			"vars": {
+				"API_HOST": "staging.example.com",
+				"API_ACCOUNT_ID": "staging_user",
+				"SERVICE_X_DATA": {
+					"URL": "service-x-api.dev.example",
+					"MY_ID": 456,
+				},
+			},
+			// Routes - must be unique
+			"route": {
+				"pattern": "staging.example.org/*",
+				"zone_name": "example.org",
+			},
+			// Service bindings - target specific Worker environments
+			// Must append "-staging" to target a Worker's staging environment
+			"services": [
+				{
+					"binding": "<BINDING_NAME>",
+					"service": "<WORKER_NAME>-staging", // Targets the staging environment
+					"entrypoint": "<ENTRYPOINT_NAME>",
+				},
+			],
+			// KV namespaces - SHOULD use different namespace IDs for isolation
+			"kv_namespaces": [
+				{
+					"binding": "<MY_NAMESPACE>",
+					"id": "<STAGING_KV_ID>"
+				},
+				{
+					"binding": "<BINDING_NAME2>",
+					"id": "<STAGING_NAMESPACE_ID2>",
+				},
+			],
+			// D1 databases - SHOULD use different database IDs for isolation
+			"d1_databases": [
+				{
+					"binding": "<BINDING_NAME>",
+					"database_name": "<STAGING_DATABASE_NAME>",
+					"database_id": "<STAGING_DATABASE_ID>"
+					"preview_database_id": "<PREVIEW_DATABASE_ID>",
+				},
+			],
+			// R2 buckets - SHOULD use different bucket names for isolation
+			"r2_buckets": [
+				{
+					"binding": "<BINDING_NAME1>",
+					"bucket_name": "<STAGING_BUCKET_NAME>"
+					"preview_bucket_name": "<PREVIEW_BUCKET_NAME1>",
+				},
+				{
+					"binding": "<BINDING_NAME2>",
+					"bucket_name": "<STAGING_BUCKET_NAME2>",
+					"jurisdiction": "eu",
+				},
+			],
+			// Durable Objects - automatically isolated by environment
+			"durable_objects": {
+				"bindings": [
+					{
+						"name": "<BINDING_NAME>",
+						"class_name": "<CLASS_NAME>",
+					},
+					{
+						"name": "MY_DURABLE_OBJECT",
+						"class_name": "MyDurableObjectClass",
+						"script_name": "external-worker", // Will become "external-worker-staging"
+						"environment": "staging",
+					},
+				],
+			},
+			// Workflows - must have unique names (account-level resources)
+			"workflows": [
+				{
+					"name": "my-workflow-staging", // Must be unique per environment
+					"binding": "MY_WORKFLOW",
+					"class_name": "MyWorkflow",
+				},
+			],
+			// Queues - SHOULD use different queue names for isolation
+			"queues": {
+				"producers": [
+					{
+						"binding": "<BINDING_NAME>",
+						"queue": "staging-queue"
+						"delivery_delay": 60,
+					},
+				],
+				"consumers": [
+					{
+						"queue": "staging-queue", // Must match producer queue name
+						"max_batch_size": 5,
+						"max_batch_timeout": 10,
+						"max_retries": 5,
+						"dead_letter_queue": "staging-queue-dlq",
+						"max_concurrency": 2,
+						"retry_delay": 60,
+					},
+				],
+			},
+			// Analytics Engine - use different dataset names for each environment
+			"analytics_engine_datasets": [
+				{
+					"binding": "<BINDING_NAME>",
+					"dataset": "<STAGING_DATASET_NAME>"
+				},
+			],
+			// Vectorize - index names must be unique per account
+			"vectorize": [
+				{
+					"binding": "<BINDING_NAME>",
+					"index_name": "<STAGING_INDEX_NAME>", // Must be unique per environment
+				},
+			],
+			// AI binding - can be shared across environments
+			"ai": {
+				"binding": "AI",
+			},
+			// Browser binding - can be shared across environments
+			"browser": {
+				"binding": "<BINDING_NAME>",
+			},
+			// Email bindings - can use different addresses per environment
+			"send_email": [
+				{
+					"name": "<NAME_FOR_BINDING1>",
+				},
+				{
+					"name": "<NAME_FOR_BINDING2>",
+					"destination_address": "test@example.com", // Test address for staging
+				},
+			],
+			// Hyperdrive - SHOULD use different config IDs for database isolation
+			"hyperdrive": [
+				{
+					"binding": "<BINDING_NAME>",
+					"id": "<STAGING_HYPERDRIVE_ID>"
+				},
+			],
+			// mTLS certificates - typically different per environment
+			"mtls_certificates": [
+				{
+					"binding": "<BINDING_NAME1>",
+					"certificate_id": "<STAGING_CERTIFICATE_ID>",
+				},
+			],
+			// Version metadata - can be shared across environments
+			"version_metadata": {
+				"binding": "CF_VERSION_METADATA",
+			},
+			// Tail consumers - automatically target the specified environment
+			"tail_consumers": [
+				{
+					"service": "tail-worker-staging",
+				},
+			],
+			"triggers": {
+				"crons": ["0 */6 * * *"],
+			},
+			"observability": {
+				"enabled": true,
+				"head_sampling_rate": 1.0,
+			},
+		},
+	},
+}
+```
+
+</WranglerConfig>
+
+</details>
+
+### Required environment properties
+
+Because environments run as isolated copies of your application, all of your bindings and environment variables need to be redefined for each environment. This ensures complete isolation between environments — changes to resources in one environment won't affect another.
+
+Each environment configuration must explicitly define:
+
+- Environment variables (`vars`)
+- All resource bindings (D1 databases, KV namespaces, R2 buckets, etc.)
+- Secrets (managed separately via Wrangler or the dashboard)
+- Any other configuration specific to that environment
+
+## Deployment workflows
+
+All environments must be defined in your Wrangler configuration file. Once configured, you can deploy environments through two main workflows:
+
+### Manual deployment with Wrangler
+
+Deploy to specific environments using Wrangler, the Cloudflare API, or Infrastructure as Code tools like Terraform:
+
+```bash
+# Deploy to the default environment
+npx wrangler deploy
+
+# Deploy to a specific environment
+npx wrangler deploy --env staging
+npx wrangler deploy --env production
+```
+
+### Automated deployment with Git integration
+
+When you connect your repository to Cloudflare, Workers Builds automatically creates isolated preview environments for every pull request and can deploy specific branches to designated environments.
+
+#### Pull request previews
+
+Every pull request automatically gets its own isolated environment. When you open a PR:
+
+- Cloudflare automatically builds and deploys your code
+- You receive two URLs instantly:
+  - **Preview URL**: `https://<hash>-<worker-name>.<subdomain>.workers.dev` (e.g., `https://0a8a97c0-my-api.korinne.workers.dev`)
+  - **Branch URL**: `https://<branch-name>-<worker-name>.<subdomain>.workers.dev` (e.g., `https://new-feature-my-api.korinne.workers.dev`)
+
+These preview environments are perfect for:
+
+- Testing changes before merging
+- Sharing work with teammates for review
+- Running integration tests against PR-specific endpoints
+
+## How bindings behave in environments
+
+Each binding type has different requirements for environment isolation. Understanding these patterns helps prevent data leakage between environments.
+
+### KV namespaces
+
+**Use different `id` values** to keep data separate between environments:
+
+<WranglerConfig>
+
+```jsonc
+{
+	"env": {
+		"production": {
+			"kv_namespaces": [
+				{
+					"binding": "<MY_NAMESPACE>",
+					"id": "<PRODUCTION_KV_ID>",
+				},
+			],
+		},
+		"staging": {
+			"kv_namespaces": [
+				{
+					"binding": "<MY_NAMESPACE>",
+					"id": "<STAGING_KV_ID>",
+					// Warning: Using the production ID would share data
+				},
+			],
+		},
+	},
+}
+```
+
+</WranglerConfig>
+
+### D1 databases
+
+**Use different `database_id` values** to maintain separate data stores:
+
+<WranglerConfig>
+
+```jsonc
+{
+	"env": {
+		"production": {
+			"d1_databases": [
+				{
+					"binding": "<BINDING_NAME>",
+					"database_name": "<DATABASE_NAME>",
+					"database_id": "<PRODUCTION_DATABASE_ID>",
+				},
+			],
+		},
+		"staging": {
+			"d1_databases": [
+				{
+					"binding": "<BINDING_NAME>",
+					"database_name": "<STAGING_DATABASE_NAME>",
+					"database_id": "<STAGING_DATABASE_ID>",
+					// Warning: Using the production ID would share the database
+				},
+			],
+		},
+	},
+}
+```
+
+</WranglerConfig>
+
+### R2 buckets
+
+**Use different `bucket_name` values** to keep files separate:
+
+<WranglerConfig>
+
+```jsonc
+{
+	"env": {
+		"production": {
+			"r2_buckets": [
+				{
+					"binding": "<BINDING_NAME1>",
+					"bucket_name": "<PRODUCTION_BUCKET_NAME>",
+				},
+			],
+		},
+		"staging": {
+			"r2_buckets": [
+				{
+					"binding": "<BINDING_NAME1>",
+					"bucket_name": "<STAGING_BUCKET_NAME>",
+					// Warning: Using the production bucket would share files
+				},
+			],
+		},
+	},
+}
+```
+
+</WranglerConfig>
+
+### Queues
+
+**Use different `queue` names** to prevent message mixing:
+
+<WranglerConfig>
+
+```jsonc
+{
+	"env": {
+		"production": {
+			"queues": {
+				"producers": [
+					{
+						"binding": "<BINDING_NAME>",
+						"queue": "production-queue",
+					},
+				],
+			},
+		},
+		"staging": {
+			"queues": {
+				"producers": [
+					{
+						"binding": "<BINDING_NAME>",
+						"queue": "staging-queue",
+						// Warning: Using the production queue would mix messages
+					},
+				],
+			},
+		},
+	},
+}
+```
+
+</WranglerConfig>
+
+### Hyperdrive
+
+**Use different `id` values** to connect to separate databases:
+
+<WranglerConfig>
+
+```jsonc
+{
+	"env": {
+		"production": {
+			"hyperdrive": [
+				{
+					"binding": "<BINDING_NAME>",
+					"id": "<PRODUCTION_HYPERDRIVE_ID>",
+				},
+			],
+		},
+		"staging": {
+			"hyperdrive": [
+				{
+					"binding": "<BINDING_NAME>",
+					"id": "<STAGING_HYPERDRIVE_ID>",
+					// Warning: Using the production ID would connect to production database
+				},
+			],
+		},
+	},
+}
+```
+
+</WranglerConfig>
+
+### Analytics Engine datasets
+
+**Use different `dataset` names** to keep metrics separate:
+
+<WranglerConfig>
+
+```jsonc
+{
+	"env": {
+		"production": {
+			"analytics_engine_datasets": [
+				{
+					"binding": "<BINDING_NAME>",
+					"dataset": "<PRODUCTION_DATASET_NAME>",
+				},
+			],
+		},
+		"staging": {
+			"analytics_engine_datasets": [
+				{
+					"binding": "<BINDING_NAME>",
+					"dataset": "<STAGING_DATASET_NAME>",
+					// Warning: Using the production dataset would mix metrics
+				},
+			],
+		},
+	},
+}
+```
+
+</WranglerConfig>
+
+### Routes
+
+**Must use unique `pattern` values.** Each URL pattern can only point to one Worker.
+
+<WranglerConfig>
+
+```jsonc
+{
+	"env": {
+		"production": {
+			"route": {
+				"pattern": "example.org/*", // Must be unique across all Workers
+				"zone_name": "example.org",
+			},
+		},
+		"staging": {
+			"route": {
+				"pattern": "staging.example.org/*", // Must be unique across all Workers
+				"zone_name": "example.org",
+			},
+		},
+	},
+}
+```
+
+</WranglerConfig>
+
+### Service bindings
+
+**Must specify the target environment** by appending the environment name to the `service` field.
+
+<WranglerConfig>
+
+```jsonc
+{
+	"env": {
+		"production": {
+			"services": [
+				{
+					"binding": "<BINDING_NAME>",
+					"service": "<WORKER_NAME>", // Targets production environment of the Worker
+				},
+			],
+		},
+		"staging": {
+			"services": [
+				{
+					"binding": "<BINDING_NAME>",
+					"service": "<WORKER_NAME>-staging", // Must append environment name
+				},
+			],
+		},
+	},
+}
+```
+
+</WranglerConfig>
+
+### Workflows
+
+**Must have unique `name` values.** Workflows are account-level resources that environments reference by name.
+
+<WranglerConfig>
+
+```jsonc
+{
+	"env": {
+		"production": {
+			"workflows": [
+				{
+					"name": "my-workflow-production", // Must be unique per environment
+					"binding": "MY_WORKFLOW",
+					"class_name": "MyWorkflow",
+				},
+			],
+		},
+		"staging": {
+			"workflows": [
+				{
+					"name": "my-workflow-staging", // Must be unique per environment
+					"binding": "MY_WORKFLOW",
+					"class_name": "MyWorkflow",
+				},
+			],
+		},
+	},
+}
+```
+
+</WranglerConfig>
+
+### Vectorize indexes
+
+**Must have unique `index_name` values per account.** Cannot be changed after creation.
+
+<WranglerConfig>
+
+```jsonc
+{
+	"env": {
+		"production": {
+			"vectorize": [
+				{
+					"binding": "<BINDING_NAME>",
+					"index_name": "<PRODUCTION_INDEX_NAME>", // Must be unique per environment
+				},
+			],
+		},
+		"staging": {
+			"vectorize": [
+				{
+					"binding": "<BINDING_NAME>",
+					"index_name": "<STAGING_INDEX_NAME>", // Must be unique per environment
+				},
+			],
+		},
+	},
+}
+```
+
+</WranglerConfig>
+
+### Durable Objects
+
+**Automatically isolated.** Each environment gets its own instances with separate storage:
+
+<WranglerConfig>
+
+```jsonc
+{
+	"durable_objects": {
+		"bindings": [
+			{
+				"name": "RATE_LIMITER",
+				"class_name": "RateLimiter",
+				// Automatically isolated per environment
+			},
+		],
+	},
+}
+```
+
+</WranglerConfig>
+
+### Tail consumers
+
+**Automatically isolated.** Route logs to the specified Worker:
+
+<WranglerConfig>
+
+```jsonc
+{
+	"env": {
+		"production": {
+			"tail_consumers": [
+				{
+					"service": "log-worker",
+				},
+			],
+		},
+		"staging": {
+			"tail_consumers": [
+				{
+					"service": "log-worker-staging",
+				},
+			],
+		},
+	},
+}
+```
+
+</WranglerConfig>
+
+### AI binding
+
+**Can share configuration.** Provides access to the same AI models across all environments:
+
+<WranglerConfig>
+
+```jsonc
+{
+	"ai": {
+		"binding": "AI",
+	},
+}
+```
+
+</WranglerConfig>
+
+### Browser Rendering
+
+**Can share configuration.** Provides access to the same browser rendering service:
+
+<WranglerConfig>
+
+```jsonc
+{
+	"browser": {
+		"binding": "<BINDING_NAME>",
+	},
+}
+```
+
+</WranglerConfig>
+
+### mTLS certificates
+
+**Can share configuration.** Can use the same certificate or different ones per environment:
+
+<WranglerConfig>
+
+```jsonc
+{
+	"env": {
+		"production": {
+			"mtls_certificates": [
+				{
+					"binding": "<BINDING_NAME1>",
+					"certificate_id": "<PRODUCTION_CERTIFICATE_ID>",
+				},
+			],
+		},
+		"staging": {
+			"mtls_certificates": [
+				{
+					"binding": "<BINDING_NAME1>",
+					"certificate_id": "<STAGING_CERTIFICATE_ID>",
+				},
+			],
+		},
+	},
+}
+```
+
+</WranglerConfig>
+
+### Version metadata
+
+**Can share configuration.** Provides Worker version information:
+
+<WranglerConfig>
+
+```jsonc
+{
+	"version_metadata": {
+		"binding": "CF_VERSION_METADATA",
+	},
+}
+```
+
+</WranglerConfig>
+
+## Common use cases
+
+Environments enable several development and deployment patterns:
+
+- **Development/Staging/Production workflow** - Test changes in isolated environments before promoting to production
+- **Feature branch deployments** - Create temporary environments for testing new features
+- **Regional deployments** - Run different configurations for different geographic regions
+- **A/B testing** - Deploy variations of your application for experimentation
+- **Client-specific deployments** - Maintain separate environments for different customers or tenants
