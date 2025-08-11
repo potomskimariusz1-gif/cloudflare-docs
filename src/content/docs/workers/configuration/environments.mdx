@@ -16,7 +16,7 @@ import {
 
 An **environment** is a separate, isolated instance of your Worker application. For example, you can have a `staging` and a `production` environment running simultaneously.
 
-Each environment deploys to its own unique URL and can have different configuration — such as different resources that your [bindings](/workers/runtime-apis/bindings/) connect to, different [environment variables](/workers/configuration/environment-variables/), and different [secrets](/workers/configuration/secrets/). This isolation lets you test changes in one environment without affecting users in another.
+Each environment has its own unique URL and can have different configuration — such as different resources that your [bindings](/workers/runtime-apis/bindings/) connect to, different [environment variables](/workers/configuration/environment-variables/), and different [secrets](/workers/configuration/secrets/). This isolation lets you test changes in one environment without affecting users in another.
 
 You first define environments in [Wrangler configuration](/workers/wrangler/configuration/), and then deploy them either manually or automatically through our [Git integration](/workers/ci-cd/builds/).
 
