@@ -9,6 +9,7 @@ export { default as APIRequest } from "./APIRequest.astro";
 export { default as AvailableNotifications } from "./AvailableNotifications.astro";
 export { default as CompatibilityFlag } from "./CompatibilityFlag.astro";
 export { default as CompatibilityFlags } from "./CompatibilityFlags.astro";
+export { default as ComponentUsage } from "./ComponentUsage.astro";
 export { default as ComponentsUsage } from "./ComponentsUsage.astro";
 export { default as CopyPageButton } from "./CopyPageButton.tsx";
 export { default as CURL } from "./CURL.astro";
@@ -40,6 +41,7 @@ export { default as PagesBuildEnvironmentTools } from "./PagesBuildEnvironmentTo
 export { default as PagesBuildPreset } from "./PagesBuildPreset.astro";
 export { default as PagesBuildPresetsTable } from "./PagesBuildPresetsTable.astro";
 export { default as PagesLanguageSupport } from "./PagesLanguageSupport.astro";
+export { default as PartialsUsage } from "./PartialsUsage.astro";
 export { default as Plan } from "./Plan.astro";
 export { default as PlanInfo } from "./PlanInfo.astro";
 export { default as ProductChangelog } from "./ProductChangelog.astro";
