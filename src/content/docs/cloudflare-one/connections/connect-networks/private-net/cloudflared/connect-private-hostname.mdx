@@ -202,6 +202,7 @@ You can run the following tests to check if private hostname routing is properly
 
 		If the DNS lookup fails, it means that WARP cannot connect to your internal DNS server through `cloudflared`. Check that you have a [tunnel route](#2-connect-the-dns-server-to-cloudflare) for the internal DNS server IP. Also, confirm that the DNS server IP [routes through the WARP tunnel](#split-tunnels).
 
+		For a general WARP-to-Tunnel troubleshooting procedure, refer to [Troubleshoot private network connectivity](/cloudflare-one/connections/connect-networks/troubleshoot-tunnels/private-networks/).
 
 2. Run a standard `nslookup` for the private hostname:
 
@@ -231,8 +232,6 @@ You can run the following tests to check if private hostname routing is properly
 		```
 
 		If the request fails, confirm that the initial resolved IP [routes through the WARP tunnel](#split-tunnels). You can also check your [tunnel logs](/cloudflare-one/connections/connect-networks/monitor-tunnels/logs/) to confirm that requests are routing to the application's private IP.
-
-		For a generic WARP-to-Tunnel troubleshooting procedure, refer to [Troubleshoot private network connectivity](/cloudflare-one/connections/connect-networks/troubleshoot-tunnels/private-networks/).
 
 ## Supported on-ramps/off-ramps
 
