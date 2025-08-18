@@ -230,7 +230,7 @@ You can run the following tests to check if private hostname routing is properly
 		...
 		```
 
-		You can check your [tunnel logs](/cloudflare-one/connections/connect-networks/monitor-tunnels/logs/) to confirm that requests are routing to the application's private IP.
+		If the request fails, confirm that the initial resolved IP [routes through the WARP tunnel](#split-tunnels). You can also check your [tunnel logs](/cloudflare-one/connections/connect-networks/monitor-tunnels/logs/) to confirm that requests are routing to the application's private IP.
 
 		For a generic WARP-to-Tunnel troubleshooting procedure, refer to [Troubleshoot private network connectivity](/cloudflare-one/connections/connect-networks/troubleshoot-tunnels/private-networks/).
 
