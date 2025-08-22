@@ -22,7 +22,7 @@ const [product, module] = Astro.url.pathname.split("/").filter(Boolean);
 		type="text"
 		id="sidebar-search"
 		placeholder="Search documentation..."
-		class="w-full py-2 px-2 text-sm border rounded-md transition-all duration-300 ease-in-out hover:shadow-md focus:outline-none focus:border-[#F6821F] focus:ring-2 focus:ring-[#F6821F] focus:shadow-lg"
+		class="w-full py-2 px-2 text-sm border rounded-md transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 sidebar-search-input"
 		style="border-color: var(--sl-color-hairline-light); background: var(--sl-color-bg-sidebar); color: var(--sl-color-text);"
 	/>
 </div>
@@ -45,6 +45,7 @@ const [product, module] = Astro.url.pathname.split("/").filter(Boolean);
 		links: 'a',
 		summaries: 'summary'
 	} as const;
+
 
 	/**
 	 * Initialize sidebar search functionality
@@ -76,6 +77,7 @@ const [product, module] = Astro.url.pathname.split("/").filter(Boolean);
 			}
 		});
 	}
+
 
 	/**
 	 * Check if an element's text content matches the search query
@@ -216,6 +218,10 @@ const [product, module] = Astro.url.pathname.split("/").filter(Boolean);
 </script>
 
 <style is:global>
+	.sidebar-search-input:focus {
+		border-color: var(--sl-color-accent) !important;
+		--tw-ring-color: var(--sl-color-accent);
+	}
 
 	:root {
 		.sidebar-content {
