@@ -38,7 +38,6 @@ const [product, module] = Astro.url.pathname.split("/").filter(Boolean);
 	 * CSS selectors for sidebar elements
 	 */
 	const SELECTORS = {
-		searchInput: '#sidebar-search',
 		sidebarContent: '.sidebar-content',
 		listItems: 'li',
 		detailsGroups: 'details',
@@ -124,27 +123,17 @@ const [product, module] = Astro.url.pathname.split("/").filter(Boolean);
 	 * Check if a sidebar item matches the search query
 	 */
 	function itemMatchesSearch(item: Element, query: string): boolean {
-		// Check direct link text (individual pages/chapters)
-		const directLink = item.querySelector(SELECTORS.links);
-		if (elementMatchesQuery(directLink, query)) {
-			return true;
-		}
-
-		// Check group/folder names
-		const summary = item.querySelector(SELECTORS.summaries);
-		if (elementMatchesQuery(summary, query)) {
-			return true;
-		}
-
-		// Check nested links for comprehensive matching
-		const nestedLinks = item.querySelectorAll(SELECTORS.links);
-		for (const nestedLink of nestedLinks) {
-			if (elementMatchesQuery(nestedLink, query)) {
+		// Check direct link text and nested links
+		const allLinks = item.querySelectorAll(SELECTORS.links);
+		for (const link of allLinks) {
+			if (elementMatchesQuery(link, query)) {
 				return true;
 			}
 		}
 
-		return false;
+		// Check group/folder names
+		const summary = item.querySelector(SELECTORS.summaries);
+		return elementMatchesQuery(summary, query);
 	}
 
 	/**
@@ -185,37 +174,22 @@ const [product, module] = Astro.url.pathname.split("/").filter(Boolean);
 		const allItems = sidebarContent.querySelectorAll(SELECTORS.listItems);
 		const allGroups = sidebarContent.querySelectorAll(SELECTORS.detailsGroups);
 		const visibleGroups = new Set<Element>();
-		const matchingFolders = new Set<Element>();
 		const itemsInMatchingFolders = new Set<Element>();
 
-		// First pass: identify folders that match the query
+		// First pass: identify matching folders and their contents
 		allGroups.forEach(group => {
 			const summary = group.querySelector(SELECTORS.summaries);
 			if (elementMatchesQuery(summary, query)) {
-				matchingFolders.add(group);
 				visibleGroups.add(group);
 				(group as HTMLDetailsElement).open = true;
-				// Show all contents within this matching folder
 				showAllContentsInFolder(group, visibleGroups);
-				
-				// Track all items within this matching folder
-				const itemsInFolder = group.querySelectorAll(SELECTORS.listItems);
-				itemsInFolder.forEach(item => itemsInMatchingFolders.add(item));
+				group.querySelectorAll(SELECTORS.listItems).forEach(item => itemsInMatchingFolders.add(item));
 			}
 		});
 
 		// Process each sidebar item
 		allItems.forEach(item => {
-			let shouldShowItem = false;
-
-			// Check if this item is inside a matching folder
-			if (itemsInMatchingFolders.has(item)) {
-				shouldShowItem = true;
-			} else {
-				// Otherwise, check if the individual item matches
-				shouldShowItem = itemMatchesSearch(item, query);
-			}
-
+			const shouldShowItem = itemsInMatchingFolders.has(item) || itemMatchesSearch(item, query);
 			toggleItemVisibility(item as HTMLElement, shouldShowItem);
 
 			if (shouldShowItem) {
@@ -223,27 +197,13 @@ const [product, module] = Astro.url.pathname.split("/").filter(Boolean);
 			}
 		});
 
-		// Handle nested groups visibility
+		// Handle groups visibility
 		allGroups.forEach(group => {
-			if (!visibleGroups.has(group)) {
-				// Check if this group is inside a matching folder
-				const parentMatchingFolder = Array.from(matchingFolders).find(folder => 
-					folder.contains(group)
-				);
-				
-				if (parentMatchingFolder) {
-					// This group is inside a matching folder, so it should be visible
-					visibleGroups.add(group);
-					toggleItemVisibility(group as HTMLElement, true);
-					(group as HTMLDetailsElement).open = true;
-				} else {
-					// Check if it has visible children
-					const visibleChildren = group.querySelectorAll('li:not([style*="display: none"])');
-					const hasVisibleChildren = visibleChildren.length > 0;
-					toggleItemVisibility(group as HTMLElement, hasVisibleChildren);
-				}
-			} else {
+			if (visibleGroups.has(group)) {
 				toggleItemVisibility(group as HTMLElement, true);
+			} else {
+				const hasVisibleChildren = group.querySelectorAll('li:not([style*="display: none"])').length > 0;
+				toggleItemVisibility(group as HTMLElement, hasVisibleChildren);
 			}
 		});
 	}
