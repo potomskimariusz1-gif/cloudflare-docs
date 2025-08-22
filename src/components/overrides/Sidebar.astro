@@ -16,9 +16,235 @@ const [product, module] = Astro.url.pathname.split("/").filter(Boolean);
 	</span>
 </a>
 
+<!-- Search Input -->
+<div class="sidebar-search-container">
+	<input
+		type="text"
+		id="sidebar-search"
+		placeholder="Search documentation..."
+		class="sidebar-search-input"
+	/>
+</div>
+
 <Default><slot /></Default>
 
+<script>
+	/**
+	 * Debounce delay for search input (milliseconds)
+	 */
+	const SEARCH_DEBOUNCE_DELAY = 150;
+
+	/**
+	 * CSS selectors for sidebar elements
+	 */
+	const SELECTORS = {
+		searchInput: '#sidebar-search',
+		sidebarContent: '.sidebar-content',
+		listItems: 'li',
+		detailsGroups: 'details',
+		links: 'a',
+		summaries: 'summary'
+	} as const;
+
+	/**
+	 * Initialize sidebar search functionality
+	 */
+	function initSidebarSearch(): void {
+		const searchInput = document.getElementById('sidebar-search') as HTMLInputElement;
+		if (!searchInput) {
+			console.warn('Sidebar search input not found');
+			return;
+		}
+
+		let debounceTimer: number;
+
+		// Handle search input with debouncing
+		searchInput.addEventListener('input', (event) => {
+			clearTimeout(debounceTimer);
+			debounceTimer = window.setTimeout(() => {
+				const target = event.target as HTMLInputElement;
+				const searchQuery = target.value.toLowerCase().trim();
+				filterSidebarItems(searchQuery);
+			}, SEARCH_DEBOUNCE_DELAY);
+		});
+
+		// Handle escape key to clear search
+		searchInput.addEventListener('keydown', (event) => {
+			if (event.key === 'Escape') {
+				searchInput.value = '';
+				filterSidebarItems('');
+			}
+		});
+	}
+
+	/**
+	 * Check if an element's text content matches the search query
+	 */
+	function elementMatchesQuery(element: Element | null, query: string): boolean {
+		if (!element || !element.textContent) return false;
+		return element.textContent.toLowerCase().includes(query);
+	}
+
+	/**
+	 * Show or hide a sidebar item
+	 */
+	function toggleItemVisibility(item: HTMLElement, isVisible: boolean): void {
+		item.style.display = isVisible ? '' : 'none';
+	}
+
+	/**
+	 * Mark parent groups as visible and expand them
+	 */
+	function expandParentGroups(item: Element, visibleGroups: Set<Element>): void {
+		let currentParent = item.parentElement;
+
+		while (currentParent) {
+			if (currentParent.tagName === 'DETAILS') {
+				visibleGroups.add(currentParent);
+				(currentParent as HTMLDetailsElement).open = true;
+			}
+			currentParent = currentParent.parentElement;
+		}
+	}
+
+	/**
+	 * Reset all sidebar items to visible state
+	 */
+	function showAllSidebarItems(sidebarContent: Element): void {
+		const allItems = sidebarContent.querySelectorAll(SELECTORS.listItems);
+		const allGroups = sidebarContent.querySelectorAll(SELECTORS.detailsGroups);
+
+		allItems.forEach(item => toggleItemVisibility(item as HTMLElement, true));
+		allGroups.forEach(group => toggleItemVisibility(group as HTMLElement, true));
+	}
+
+	/**
+	 * Check if a sidebar item matches the search query
+	 */
+	function itemMatchesSearch(item: Element, query: string): boolean {
+		// Check direct link text (individual pages/chapters)
+		const directLink = item.querySelector(SELECTORS.links);
+		if (elementMatchesQuery(directLink, query)) {
+			return true;
+		}
+
+		// Check group/folder names
+		const summary = item.querySelector(SELECTORS.summaries);
+		if (elementMatchesQuery(summary, query)) {
+			return true;
+		}
+
+		// Check nested links for comprehensive matching
+		const nestedLinks = item.querySelectorAll(SELECTORS.links);
+		for (const nestedLink of nestedLinks) {
+			if (elementMatchesQuery(nestedLink, query)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Filter sidebar items based on search query
+	 */
+	function filterSidebarItems(query: string): void {
+		const sidebarContent = document.querySelector(SELECTORS.sidebarContent);
+		if (!sidebarContent) {
+			console.warn('Sidebar content not found');
+			return;
+		}
+
+		// If no query, show all items
+		if (!query) {
+			showAllSidebarItems(sidebarContent);
+			return;
+		}
+
+		const allItems = sidebarContent.querySelectorAll(SELECTORS.listItems);
+		const allGroups = sidebarContent.querySelectorAll(SELECTORS.detailsGroups);
+		const visibleGroups = new Set<Element>();
+		const matchingFolders = new Set<Element>();
+
+		// First pass: identify folders that match the query
+		allGroups.forEach(group => {
+			const summary = group.querySelector(SELECTORS.summaries);
+			if (elementMatchesQuery(summary, query)) {
+				matchingFolders.add(group);
+				visibleGroups.add(group);
+				(group as HTMLDetailsElement).open = true;
+			}
+		});
+
+		// Process each sidebar item
+		allItems.forEach(item => {
+			let shouldShowItem = false;
+
+			// Check if this item is inside a matching folder
+			let parentGroup = item.closest(SELECTORS.detailsGroups);
+			if (parentGroup && matchingFolders.has(parentGroup)) {
+				shouldShowItem = true;
+			} else {
+				// Otherwise, check if the individual item matches
+				shouldShowItem = itemMatchesSearch(item, query);
+			}
+
+			toggleItemVisibility(item as HTMLElement, shouldShowItem);
+
+			if (shouldShowItem) {
+				expandParentGroups(item, visibleGroups);
+			}
+		});
+
+		// Hide empty groups that don't contain visible items
+		allGroups.forEach(group => {
+			if (!visibleGroups.has(group)) {
+				const visibleChildren = group.querySelectorAll('li:not([style*="display: none"])');
+				const hasVisibleChildren = visibleChildren.length > 0;
+				toggleItemVisibility(group as HTMLElement, hasVisibleChildren);
+			} else {
+				toggleItemVisibility(group as HTMLElement, true);
+			}
+		});
+	}
+
+	// Initialize search functionality when DOM is ready
+	document.addEventListener('DOMContentLoaded', initSidebarSearch);
+
+	// Re-initialize on Astro page navigation for SPA-like behavior
+	document.addEventListener('astro:page-load', initSidebarSearch);
+</script>
+
 <style is:global>
+	/* Search Input Styling */
+	.sidebar-search-container {
+		position: relative;
+		margin: 1rem 0;
+		padding: 0 var(--sl-sidebar-item-padding-inline);
+	}
+
+	.sidebar-search-input {
+		width: 100%;
+		padding: 0.5rem 0.75rem 0.5rem 0.5rem;
+		border: 1px solid var(--sl-color-hairline-light);
+		border-radius: 0.375rem;
+		background: var(--sl-color-bg-sidebar);
+		color: var(--sl-color-text);
+		font-size: 0.875rem;
+		transition: border-color 0.2s ease, box-shadow 0.2s ease;
+	}
+
+	.sidebar-search-input:focus {
+		outline: none;
+		border-color: var(--sl-color-accent);
+		box-shadow: 0 0 0 2px #F6821F;
+	}
+
+	.sidebar-search-input::placeholder {
+		color: var(--sl-color-gray-3);
+	}
+
+
 	:root {
 		.sidebar-content {
 			--sl-color-hairline-light: #cacaca !important;
