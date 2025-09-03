@@ -1,0 +1,29 @@
+---
+title: Introducing new headers to Rate Limiting for Core APIs at Cloudflare
+description: New headers and a backoff introduced for SDKs for Rate Limiting for Core APIs
+products:
+  - fundamentals
+date: 2025-09-03
+---
+With the increased demand on Core APIs at Cloudflare, we recognize that reaching a rate limit without warning and being forced to wait for the time out can be frustrating. To ensure greater predictability when calling Cloudflare's Core APIs, we have introduced standardized headers to help you understand when you are approaching a rate limit, how many more calls are left until the rate limit is reached, as well as how long you will need to wait until more capacity is available.
+
+Our SDKs will also be working with these new headers, responding with a back off when rate limits are being approached. There is nothing that needs to be enable on your end - these back offs will happen on their own.
+
+As always, if you need any help with rate limits, please contact Support. 
+
+### Changes
+#### New Headers
+
+**Headers that are always returned:**
+- X-RateLimit-Limit: Total Number of requests the caller can make
+- X-RateLimit-Remaining: Number of requests before Rate Limit kicks in
+
+**Returned only when a rate limit has been reached (error code: 429):**
+- Retry-After: Number of Seconds until more capacity is available, rounded up
+- X-RateLimit-Reset: RFC 1123 Formatted Date as to when more capacity is available
+
+#### SDK Back offs
+- All SDKs will automatically respond to the headers, instituting a backoff when limits are approached. 
+
+### GraphQL and Edge APIs
+These new headers and back offs are only in effect for Cloudflare Core APIs, and will not effect GraphQL or Edge APIs. 
