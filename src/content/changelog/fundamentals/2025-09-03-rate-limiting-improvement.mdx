@@ -5,7 +5,7 @@ products:
   - fundamentals
 date: 2025-09-03
 ---
-With the increased demand on Core APIs at Cloudflare, we recognize that reaching a rate limit without warning and being forced to wait for the time out can be frustrating. To ensure greater predictability when calling Cloudflare's Core APIs, we have introduced standardized headers to help you understand when you are approaching a rate limit, how many more calls are left until the rate limit is reached, as well as how long you will need to wait until more capacity is available.
+Cloudflare's API now supports rate limiting headers using the pattern developed by the [IETF draft on rate limiting](https://ietf-wg-httpapi.github.io/ratelimit-headers/draft-ietf-httpapi-ratelimit-headers.html). This allows API consumers to know how many more calls are left until the rate limit is reached, as well as how long you will need to wait until more capacity is available. 
 
 Our SDKs will also be working with these new headers, responding with a back off when rate limits are being approached. There is nothing that needs to be enable on your end - these back offs will happen on their own.
 
