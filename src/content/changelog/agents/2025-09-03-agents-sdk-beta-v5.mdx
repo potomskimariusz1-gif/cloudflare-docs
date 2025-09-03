@@ -1,0 +1,249 @@
+---
+title: Agents SDK v0.1.0-beta adds AI SDK v5 support, automatic message migration, and enhanced tool workflows
+description: The latest release transforms the Agents SDK with full AI SDK v5 compatibility, seamless legacy message migration, intelligent tool confirmation detection, and streamlined React hooks for building production-ready AI chat interfaces.
+products:
+  - agents
+  - workers
+date: 2025-09-03
+---
+
+We've shipped a major release for the [Agents SDK](https://github.com/cloudflare/agents), bringing full compatibility with [AI SDK v5](https://ai-sdk.dev/docs/introduction) and introducing automatic message migration that handles all legacy formats transparently.
+
+This update adds tool confirmation detection, enhanced React hooks with automatic tool resolution, improved error handling for streaming responses, and seamless migration utilities that work behind the scenes.
+
+This makes it ideal for building production AI chat interfaces, agent workflows, human-in-the-loop systems, or any application requiring reliable message handling across SDK versions — all while maintaining backward compatibility.
+
+## Core Changes
+
+### 1. Message Type Updates
+
+**Before (AI SDK v4):**
+
+```typescript
+import type { Message } from "ai";
+
+const message: Message = {
+	id: "123",
+	role: "user",
+	content: "Hello, assistant!",
+};
+```
+
+**After (AI SDK v5):**
+
+```typescript
+import type { UIMessage } from "ai";
+// or alias for compatibility
+import type { UIMessage as Message } from "ai";
+
+const message: UIMessage = {
+	id: "123",
+	role: "user",
+	parts: [
+		{
+			type: "text",
+			text: "Hello, assistant!",
+		},
+	],
+};
+```
+
+### 2. Enhanced useAgentChat Hook
+
+**New automatic tool resolution:**
+
+```typescript
+import { useAgentChat, type AITool } from "agents/ai-react";
+
+// Define tools with execute functions for automatic resolution
+const tools = {
+	getLocalTime: {
+		description: "Get current local time",
+		inputSchema: z.object({}),
+		execute: async () => new Date().toLocaleString(), // Auto-executes
+	},
+	getWeatherInformation: {
+		description: "Get weather for a location",
+		inputSchema: z.object({
+			location: z.string(),
+		}),
+		// No execute function = requires confirmation
+	},
+} satisfies Record<string, AITool>;
+
+const { messages, sendMessage, addToolResult } = useAgentChat({
+	agent,
+	experimental_automaticToolResolution: true,
+	tools, // Automatic detection based on execute function presence
+});
+```
+
+### 3. Simplified Message Sending
+
+**New v5 message format:**
+
+```typescript
+// Send message with new parts structure
+sendMessage({
+	role: "user",
+	parts: [{ type: "text", text: input }],
+});
+```
+
+### 4. Tool Definition Migration
+
+**Before:**
+
+```typescript
+const tools = {
+	weather: {
+		description: "Get weather information",
+		parameters: z.object({
+			city: z.string(),
+		}),
+		execute: async (args) => {
+			// Implementation
+		},
+	},
+};
+```
+
+**After:**
+
+```typescript
+const tools = {
+	weather: {
+		description: "Get weather information",
+		inputSchema: z.object({
+			city: z.string(),
+		}),
+		execute: async (args) => {
+			// Implementation
+		},
+	},
+};
+```
+
+### 5. Enhanced Tool Confirmation Logic
+
+**Before (manual logic in components):**
+
+```typescript
+const pendingToolCallConfirmation = messages.some((m) =>
+	m.parts?.some(
+		(part) =>
+			isToolUIPart(part) &&
+			part.state === "input-available" &&
+			// Manual check inside the component
+			!(tools as Record<string, any>)[getToolName(part)]?.execute,
+	),
+);
+```
+
+**After (simplified with automatic detection):**
+
+```typescript
+const pendingToolCallConfirmation = messages.some((m) =>
+	m.parts?.some(
+		(part) => isToolUIPart(part) && part.state === "input-available",
+	),
+);
+```
+
+### 6. Type Safety Improvements
+
+**New enum-based message types:**
+
+```typescript
+export enum MessageType {
+	CF_AGENT_CHAT_MESSAGES = "cf_agent_chat_messages",
+	CF_AGENT_USE_CHAT_REQUEST = "cf_agent_use_chat_request",
+	CF_AGENT_USE_CHAT_RESPONSE = "cf_agent_use_chat_response",
+	CF_AGENT_CHAT_CLEAR = "cf_agent_chat_clear",
+	CF_AGENT_CHAT_REQUEST_CANCEL = "cf_agent_chat_request_cancel",
+}
+
+export type OutgoingMessage<ChatMessage extends UIMessage = UIMessage> =
+	| {
+			type: MessageType.CF_AGENT_CHAT_MESSAGES;
+			messages: ChatMessage[];
+	  }
+	| {
+			type: MessageType.CF_AGENT_USE_CHAT_RESPONSE;
+			id: string;
+			body: string;
+			done: boolean;
+			error?: boolean;
+	  };
+```
+
+## 🔧 Breaking Changes
+
+### Message Format Migration
+
+- **Type change**: `Message` → `UIMessage` (with automatic conversion)
+- **Structure change**: `content: string` → `parts: [{type: "text", text}]`
+- **Import updates**: Some imports moved to scoped packages like `@ai-sdk/react`
+
+### Tool Definition Updates
+
+```typescript
+// Before
+const tools = {
+	weather: {
+		parameters: z.object({ city: z.string() }),
+	},
+};
+
+// After
+const tools = {
+	weather: {
+		inputSchema: z.object({ city: z.string() }),
+	},
+};
+```
+
+## Migration Path
+
+### Automatic Data Migration (Recommended)
+
+**No action required!** The SDK automatically handles all message format conversions:
+
+- Loading messages from database
+- Processing incoming messages
+- All message entry points
+
+### Manual Migration (Optional)
+
+For advanced use cases, migration utilities are available:
+
+```typescript
+import { autoTransformMessages, analyzeCorruption } from "agents";
+
+// Analyze existing messages
+const stats = analyzeCorruption(messages);
+console.log(`Found ${stats.legacyString} legacy messages`);
+
+// Manual transformation (usually not needed)
+const cleanMessages = autoTransformMessages(anyFormatMessages);
+```
+
+## Resources
+
+- [Migration Guide](https://github.com/cloudflare/agents/blob/main/docs/migration-to-ai-sdk-v5.md) - Comprehensive migration documentation
+- [AI SDK v5 Documentation](https://ai-sdk.dev/docs/migration-guides/migration-guide-5-0) - Official AI SDK migration guide
+- [GitHub Issues](https://github.com/cloudflare/agents/issues) - Report bugs or request features
+
+## Feedback Welcome
+
+This is a **beta release** - we'd love your feedback! Please test it in your development environment and let us know:
+
+We're particularly interested in feedback on:
+
+- **Migration experience** - How smooth was the upgrade process?
+- **Tool confirmation workflow** - Does the new automatic detection work as expected?
+- **Message format handling** - Any edge cases with legacy message conversion?
+
+---
+
+_Note: This is a beta release. While we've tested extensively, please validate thoroughly in your development environment before considering production use._
