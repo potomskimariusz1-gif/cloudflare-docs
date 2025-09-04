@@ -30,25 +30,25 @@ For a quick summary, view your DNS Firewall analytics on the dashboard. The DNS 
 
 #### Available dimensions
 
-- Cluster
 - Query name
 - Query type (same as DNS record type)
-- Response code
-- Data center
+- Cluster
 - Cluster IP
+- Response code
+- Response reason (refer to [descriptions](#response-reasons) below)
+- Response cached (cached or uncached)
+- Response stale (stale or fresh)
+- Data center
 - Source IP
 - Upstream nameserver IP
-- Response stale (stale or fresh)
-- Response cache (cached or uncached)
-- Response reason
-- Protocol used (UDP or TCP)
+- Protocol (UDP or TCP)
 - IP version (IPv4 or IPv6)
 
 #### Panels
 
 The filters and time frame that you specify at the top of the page apply to all of the available panels.
 
-- **Query summary**: the number of queries and their distribution over time. This information is segmented by each of the [available dimensions](#available-dimensions) and the graph displays the top five values. You can select the dimensions through the different tabs above the graph and quickly filter for or exclude a certain value from the results by hovering over it and selecting **Filter** or **Exclude**.
+- **Query summary**: the number of queries and their distribution over time. This information is segmented by each of the [available dimensions](#available-dimensions). You can select the dimensions through the different tabs above the graph and quickly filter for or exclude a certain value from the results by hovering over it and selecting **Filter** or **Exclude**.
 
 - **Query statistics**: an overview of query metrics. Namely, **Total queries**, **Cached queries**, **Uncached queries**, and **Stale cache queries**.
 
@@ -79,7 +79,7 @@ You can also use the DNS Firewall API [reports endpoint](/api/resources/dns_fire
 
 You can [set up Logpush](/logs/logpush/) to deliver [DNS Firewall logs](/logs/logpush/logpush-job/datasets/account/dns_firewall_logs/) to a storage service, SIEM, or log management provider.
 
-### Response reasons
+## Response reasons
 
 When analyzing why Cloudflare DNS Firewall responded in one way or another to a specific query, consider the `responseReason` log field.
 
